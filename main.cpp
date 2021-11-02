@@ -36,11 +36,7 @@ static test_info tests[] {
     {"Test C" , placeholder}
 };
 
-int main(int argc, char * argv[]) {
-    reg::dispstat::write({.vblank_irq = true});
-    reg::ie::write({.vblank = true});
-    reg::ime::emplace(true);
-
+void init_display() {
     reg::dispcnt::write({
         .mode = 0,
         .layer_background_0 = true,
@@ -53,13 +49,25 @@ int main(int argc, char * argv[]) {
         .screen_size = screen_size::regular_32x32
     });
 
-    // menu
     load_font();
+
+    // clear charblock 2
+    agbabi::wordset4(videoRAM + 0x800, 0x800, 0);
+
+    // menu
     write_text(0, 1, "Dafts Useful(?) Suite of Tests");
 
     int y = 3;
     for(auto &test : tests)
         write_text(2, y++, test.name);
+}
+
+int main(int argc, char * argv[]) {
+    reg::dispstat::write({.vblank_irq = true});
+    reg::ie::write({.vblank = true});
+    reg::ime::emplace(true);
+
+    init_display();
 
     int item = 0;
 
@@ -77,6 +85,7 @@ int main(int argc, char * argv[]) {
 
         if(keypad_man.switched_up(key::button_a)) {
             tests[item].func();
+            init_display(); // reload after test
         }
 
         write_text(1, item + 3, ">");
