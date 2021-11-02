@@ -1,14 +1,7 @@
 cmake_minimum_required(VERSION 3.8)
 project(DUST)
 
-add_executable(${CMAKE_PROJECT_NAME}
-    display/display.cpp
-    common.cpp
-    main.cpp
-)
-set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES SUFFIX ".elf")
-
-target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)
+option(BUILD_SINGLE_TEST_ROMS "Build ROMs for each test" OFF)
 
 #====================
 # ROM information
@@ -19,17 +12,42 @@ set(ROM_GAME_CODE "CDTE")
 set(ROM_MAKER_CODE "DF")
 set(ROM_VERSION 100)
 
-#====================
-# GBA toolchain
-#====================
+set(SOURCES
+    display/display.cpp
+    common.cpp
+    main.cpp
+)
 
-if(GBA_TOOLCHAIN)
-    gba_target_link_agb_abi(${CMAKE_PROJECT_NAME})
-    gba_target_link_gba_plusplus(${CMAKE_PROJECT_NAME})
+function(add_gba_executable TARGET_NAME TARGET_SOURCES)
+    add_executable(${TARGET_NAME} ${TARGET_SOURCES} ${ARGN})
 
-    gba_target_sources_instruction_set(${CMAKE_PROJECT_NAME} thumb)
-    gba_target_link_runtime(${CMAKE_PROJECT_NAME} rom)
-    gba_target_object_copy(${CMAKE_PROJECT_NAME} "${CMAKE_PROJECT_NAME}.elf" "${CMAKE_PROJECT_NAME}.gba")
+    set_target_properties(${TARGET_NAME} PROPERTIES SUFFIX ".elf")
+    target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
 
-    gba_target_fix(${CMAKE_PROJECT_NAME} "${CMAKE_PROJECT_NAME}.gba" "${ROM_TITLE}" "${ROM_GAME_CODE}" "${ROM_MAKER_CODE}" ${ROM_VERSION})
+    gba_target_link_agb_abi(${TARGET_NAME})
+    gba_target_link_gba_plusplus(${TARGET_NAME})
+
+    gba_target_sources_instruction_set(${TARGET_NAME} thumb)
+    gba_target_link_runtime(${TARGET_NAME} rom)
+
+    gba_target_object_copy(${TARGET_NAME} "${TARGET_NAME}.elf" "${TARGET_NAME}.gba")
+    gba_target_fix(${TARGET_NAME} "${TARGET_NAME}.gba" "${ROM_TITLE}" "${ROM_GAME_CODE}" "${ROM_MAKER_CODE}" ${ROM_VERSION})
+endfunction()
+
+# combined suite ROM
+add_gba_executable(${CMAKE_PROJECT_NAME} ${SOURCES})
+
+# single test ROMs
+if(BUILD_SINGLE_TEST_ROMS)
+    set(TESTS
+        display_layer_none
+        display_cgb_mode
+        display_forced_blank
+    )
+
+    foreach(TEST ${TESTS})
+        add_gba_executable(${CMAKE_PROJECT_NAME}_${TEST} ${SOURCES})
+
+        target_compile_definitions(${CMAKE_PROJECT_NAME}_${TEST} PRIVATE SINGLE_TEST=${TEST})
+    endforeach()
 endif()

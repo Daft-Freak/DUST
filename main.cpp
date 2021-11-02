@@ -47,6 +47,7 @@ void init_display() {
 
     load_font();
 
+#ifndef SINGLE_TEST
     clear_text();
 
     // menu
@@ -55,6 +56,8 @@ void init_display() {
     int y = 3;
     for(auto &test : tests)
         write_text(2, y++, test.name);
+
+#endif
 }
 
 int main(int argc, char * argv[]) {
@@ -64,6 +67,11 @@ int main(int argc, char * argv[]) {
 
     init_display();
 
+#ifdef SINGLE_TEST
+    while(true) {
+        SINGLE_TEST();
+    }
+#else
     int item = 0;
 
     while(true) {
@@ -85,6 +93,7 @@ int main(int argc, char * argv[]) {
 
         write_text(1, item + 3, ">");
     }
+#endif
 
     __builtin_unreachable();
 }
