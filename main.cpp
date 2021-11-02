@@ -36,7 +36,7 @@ static test_info tests[] {
     {"Display/forced blank", display_forced_blank},
 };
 
-void init_display() {
+static void init_display() {
     reg::dispcnt::write({
         .mode = 0,
         .layer_background_0 = true,
