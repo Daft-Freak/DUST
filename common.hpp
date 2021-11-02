@@ -14,3 +14,5 @@ void wait_for_exit();
 
 // test declarations
 void display_layer_none();
+void display_cgb_mode();
+void display_forced_blank();

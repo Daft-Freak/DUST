@@ -32,6 +32,8 @@ struct test_info {
 
 static test_info tests[] {
     {"Display/no layers" , display_layer_none},
+    {"Display/CGB mode" , display_cgb_mode},
+    {"Display/forced blank", display_forced_blank},
 };
 
 void init_display() {
