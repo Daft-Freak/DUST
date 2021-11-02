@@ -31,9 +31,7 @@ struct test_info {
 };
 
 static test_info tests[] {
-    {"Test A" , placeholder},
-    {"Test B" , placeholder},
-    {"Test C" , placeholder}
+    {"Display/no layers" , display_layer_none},
 };
 
 void init_display() {

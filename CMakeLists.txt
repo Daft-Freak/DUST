@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.8)
 project(DUST)
 
 add_executable(${CMAKE_PROJECT_NAME}
+    display/display.cpp
     common.cpp
     main.cpp
 )

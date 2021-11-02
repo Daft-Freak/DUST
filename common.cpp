@@ -1,3 +1,5 @@
+#include <gba/gba.hpp>
+
 #include "common.hpp"
 
 void write_text(int x, int y, const char *text) {
@@ -6,4 +8,15 @@ void write_text(int x, int y, const char *text) {
 
     for(; *text; text++)
         *ptr++ = *text - ' ';
+}
+
+void wait_for_exit() {
+    while(true) {
+        keypad_man.poll();
+
+        gba::bios::vblank_intr_wait();
+
+        if(keypad_man.switched_up(gba::key::button_b))
+            return;
+    }
 }
