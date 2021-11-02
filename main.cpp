@@ -21,10 +21,6 @@ static void load_font() {
     bios::bit_un_pack(font8x8_char_data_1bpp, videoRAM, &unpack);
 }
 
-static void placeholder(){
-    palRAM[1] = 0x7C00;
-}
-
 struct test_info {
     const char *name;
     void (*func)();
