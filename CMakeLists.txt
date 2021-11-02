@@ -24,6 +24,9 @@ function(add_gba_executable TARGET_NAME TARGET_SOURCES)
     set_target_properties(${TARGET_NAME} PROPERTIES SUFFIX ".elf")
     target_compile_features(${TARGET_NAME} PUBLIC cxx_std_20)
 
+    target_compile_options(${TARGET_NAME} PUBLIC -fdata-sections -ffunction-sections -fno-exceptions)
+    target_link_options(${TARGET_NAME} PUBLIC --specs=nano.specs -Wl,-Map=${TARGET_NAME}.map) # rom/runtime.specs looks like it should be using -lc_nano, but doing this removes ~1k
+
     gba_target_link_agb_abi(${TARGET_NAME})
     gba_target_link_gba_plusplus(${TARGET_NAME})
 

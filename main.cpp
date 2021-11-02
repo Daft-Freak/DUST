@@ -9,6 +9,10 @@ using namespace gba;
 
 io::keypad_manager keypad_man;
 
+// hack to drop unwind code, removing ~6k from the output
+// seems to be getting pulled in from irq.s...
+extern "C" void __aeabi_unwind_cpp_pr0(){};
+
 static void load_font() {
     palRAM[0] = 0;
     palRAM[1] = 0x7FFF;
