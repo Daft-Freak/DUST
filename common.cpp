@@ -1,6 +1,12 @@
 #include <gba/gba.hpp>
+#include <gba/ext/agbabi.hpp>
 
 #include "common.hpp"
+
+void clear_text() {
+    // clear char block 2
+    gba::agbabi::wordset4(videoRAM + 0x800, 0x800, 0);
+}
 
 void write_text(int x, int y, const char *text) {
     // char block 2

@@ -49,8 +49,7 @@ void init_display() {
 
     load_font();
 
-    // clear charblock 2
-    agbabi::wordset4(videoRAM + 0x800, 0x800, 0);
+    clear_text();
 
     // menu
     write_text(0, 1, "Dafts Useful(?) Suite of Tests");
