@@ -17,7 +17,7 @@ static void load_font() {
     palRAM[0] = 0;
     palRAM[1] = 0x7FFF;
 
-    bios::bit_un_pack_input unpack {
+    static const bios::bit_un_pack_input unpack {
         .size = sizeof(font8x8_char_data_1bpp),
         .source_width = bios::un_pack_bits::_1,
         .destination_width = bios::un_pack_bits::_4
