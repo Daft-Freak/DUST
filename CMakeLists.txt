@@ -1,7 +1,10 @@
 cmake_minimum_required(VERSION 3.8)
 project(DUST)
 
-add_executable(${CMAKE_PROJECT_NAME} main.cpp)
+add_executable(${CMAKE_PROJECT_NAME}
+    common.cpp
+    main.cpp
+)
 set_target_properties(${CMAKE_PROJECT_NAME} PROPERTIES SUFFIX ".elf")
 
 target_compile_features(${CMAKE_PROJECT_NAME} PUBLIC cxx_std_20)

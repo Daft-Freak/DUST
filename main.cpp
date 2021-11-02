@@ -3,11 +3,9 @@
 #include <gba/ext/agbabi.hpp>
 
 #include "assets/8x8font.h"
+#include "common.hpp"
 
 using namespace gba;
-
-static auto palRAM = reinterpret_cast<uint16_t *>(0x05000000);
-static auto videoRAM = reinterpret_cast<uint16_t *>(0x06000000);
 
 io::keypad_manager keypad_man;
 
@@ -21,14 +19,6 @@ static void load_font() {
         .destination_width = bios::un_pack_bits::_4
     };
     bios::bit_un_pack(font8x8_char_data_1bpp, videoRAM, &unpack);
-}
-
-static void write_text(int x, int y, const char *text) {
-    // char block 2
-    auto ptr = videoRAM + 0x800 + x + y * 32;
-
-    for(; *text; text++)
-        *ptr++ = *text - ' ';
 }
 
 static void placeholder(){
