@@ -4,8 +4,8 @@
 #include "common.hpp"
 
 void clear_text() {
-    // clear char block 2
-    gba::agbabi::wordset4(videoRAM + 0x800, 0x800, 0);
+    // clear char block 2-3
+    gba::agbabi::wordset4(videoRAM + 0x800, 0x800 * 2, 0);
 }
 
 void write_text(int x, int y, const char *text) {

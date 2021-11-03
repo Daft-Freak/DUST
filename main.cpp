@@ -54,7 +54,7 @@ static void init_display() {
         .character_base_block = 0,
         .color_depth = color_depth::bpp_4,
         .screen_base_block = 2,
-        .screen_size = screen_size::regular_32x32
+        .screen_size = screen_size::regular_32x64
     });
 
     reg::bg0hofs::write(0);
@@ -105,6 +105,9 @@ int main(int argc, char * argv[]) {
             tests[item].func();
             init_display(); // reload after test
         }
+
+        // scroll to current item
+        reg::bg0vofs::write(std::max(0, (item + 3) * 8 - 80));
 
         write_text(1, item + 3, ">");
     }
