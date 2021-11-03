@@ -42,6 +42,23 @@ static test_info tests[] {
     {"Display/Layer 0 size 1", display_layer0_size1},
     {"Display/Layer 0 size 2", display_layer0_size2},
     {"Display/Layer 0 size 3", display_layer0_size3},
+    {"Display/Layer 2 mode 0", display_layer2_mode0},
+    {"Display/Layer 2 mode 1", display_layer2_mode1},
+    {"Display/Layer 2 m1 char base", display_layer2_mode1_char_base},
+    {"Display/Layer 2 m1 wrap", display_layer2_mode1_wrap},
+    {"Display/Layer 2 m1 size 1", display_layer2_mode1_size1},
+    {"Display/Layer 2 m1 size 2", display_layer2_mode1_size2},
+    {"Display/Layer 2 m1 size 3", display_layer2_mode1_size3},
+    {"Display/Layer 2 m1 rotscale", display_layer2_mode1_rotscale},
+    {"Display/Layer 2 mode 2", display_layer2_mode2},
+    {"Display/Layer 2 mode 3", display_layer2_mode3},
+    {"Display/Layer 2 m3 rotscale", display_layer2_mode3_rotscale},
+    {"Display/Layer 2 mode 4", display_layer2_mode4},
+    {"Display/Layer 2 m4 pageflip", display_layer2_mode4_pageflip},
+    {"Display/Layer 2 m4 rotscale", display_layer2_mode4_rotscale},
+    {"Display/Layer 2 mode 5", display_layer2_mode5},
+    {"Display/Layer 2 m5 pageflip", display_layer2_mode5_pageflip},
+    {"Display/Layer 2 m5 rotscale", display_layer2_mode5_rotscale},
 };
 
 static void init_display() {

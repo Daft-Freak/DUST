@@ -15,6 +15,7 @@ set(ROM_VERSION 100)
 set(SOURCES
     display/display.cpp
     display/layer0.cpp
+    display/layer2.cpp
     common.cpp
     main.cpp
 )
@@ -55,6 +56,23 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_layer0_size1
         display_layer0_size2
         display_layer0_size3
+        display_layer2_mode0
+        display_layer2_mode1
+        display_layer2_mode1_char_base
+        display_layer2_mode1_wrap
+        display_layer2_mode1_size1
+        display_layer2_mode1_size2
+        display_layer2_mode1_size3
+        display_layer2_mode1_rotscale
+        display_layer2_mode2
+        display_layer2_mode3
+        display_layer2_mode3_rotscale
+        display_layer2_mode4
+        display_layer2_mode4_pageflip
+        display_layer2_mode4_rotscale
+        display_layer2_mode5
+        display_layer2_mode5_pageflip
+        display_layer2_mode5_rotscale
     )
 
     foreach(TEST ${TESTS})
