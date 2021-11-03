@@ -31,9 +31,17 @@ struct test_info {
 };
 
 static test_info tests[] {
-    {"Display/no layers" , display_layer_none},
+    {"Display/No layers" , display_layer_none},
     {"Display/CGB mode" , display_cgb_mode},
-    {"Display/forced blank", display_forced_blank},
+    {"Display/Forced blank", display_forced_blank},
+    {"Display/Default priority", display_priority_default},
+    {"Display/Layer 0 char base", display_layer0_char_base},
+    {"Display/Layer 0 4bpp", display_layer0_4bpp},
+    {"Display/Layer 0 8bpp", display_layer0_8bpp},
+    {"Display/Layer 0 size 0", display_layer0_size0},
+    {"Display/Layer 0 size 1", display_layer0_size1},
+    {"Display/Layer 0 size 2", display_layer0_size2},
+    {"Display/Layer 0 size 3", display_layer0_size3},
 };
 
 static void init_display() {
@@ -48,6 +56,9 @@ static void init_display() {
         .screen_base_block = 2,
         .screen_size = screen_size::regular_32x32
     });
+
+    reg::bg0hofs::write(0);
+    reg::bg0vofs::write(0);
 
     load_font();
 

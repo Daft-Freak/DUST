@@ -14,6 +14,7 @@ set(ROM_VERSION 100)
 
 set(SOURCES
     display/display.cpp
+    display/layer0.cpp
     common.cpp
     main.cpp
 )
@@ -46,6 +47,14 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_layer_none
         display_cgb_mode
         display_forced_blank
+        display_priority_default
+        display_layer0_char_base
+        display_layer0_4bpp
+        display_layer0_8bpp
+        display_layer0_size0
+        display_layer0_size1
+        display_layer0_size2
+        display_layer0_size3
     )
 
     foreach(TEST ${TESTS})
