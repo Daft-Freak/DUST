@@ -56,6 +56,14 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_layer0_size1
         display_layer0_size2
         display_layer0_size3
+        display_layer0_flip
+        display_layer0_mode1
+        display_layer0_mode2
+        display_layer0_mode3
+        display_layer0_mode4
+        display_layer0_mode5
+        display_layer0_char_base_invalid
+        display_layer0_screen_base_invalid
         display_layer2_mode0
         display_layer2_mode1
         display_layer2_mode1_char_base
