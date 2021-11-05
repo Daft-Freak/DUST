@@ -49,6 +49,7 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_cgb_mode
         display_forced_blank
         display_priority_default
+        display_stat_flags
         display_layer0_char_base
         display_layer0_4bpp
         display_layer0_8bpp

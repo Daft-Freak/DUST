@@ -35,6 +35,7 @@ static test_info tests[] {
     {"Display/CGB mode" , display_cgb_mode},
     {"Display/Forced blank", display_forced_blank},
     {"Display/Default priority", display_priority_default},
+    {"Display/STAT flags", display_stat_flags},
     {"Display/Layer 0 char base", display_layer0_char_base},
     {"Display/Layer 0 4bpp", display_layer0_4bpp},
     {"Display/Layer 0 8bpp", display_layer0_8bpp},
