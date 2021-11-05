@@ -4,8 +4,8 @@
 
 extern gba::io::keypad_manager keypad_man;
 
-inline auto palRAM = reinterpret_cast<uint16_t *>(0x05000000);
-inline auto videoRAM = reinterpret_cast<uint16_t *>(0x06000000);
+inline auto palette_ram = reinterpret_cast<uint16_t *>(0x05000000);
+inline auto video_ram = reinterpret_cast<uint16_t *>(0x06000000);
 
 void clear_text();
 void write_text(int x, int y, const char *text);

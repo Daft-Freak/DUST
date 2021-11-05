@@ -14,15 +14,15 @@ io::keypad_manager keypad_man;
 extern "C" void __aeabi_unwind_cpp_pr0(){};
 
 static void load_font() {
-    palRAM[0] = 0;
-    palRAM[1] = 0x7FFF;
+    palette_ram[0] = 0;
+    palette_ram[1] = 0x7FFF;
 
     static const bios::bit_un_pack_input unpack {
         .size = sizeof(font8x8_char_data_1bpp),
         .source_width = bios::un_pack_bits::_1,
         .destination_width = bios::un_pack_bits::_4
     };
-    bios::bit_un_pack(font8x8_char_data_1bpp, videoRAM, &unpack);
+    bios::bit_un_pack(font8x8_char_data_1bpp, video_ram, &unpack);
 }
 
 struct test_info {

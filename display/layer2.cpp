@@ -27,16 +27,16 @@ void display_layer2_mode0() {
 }
 
 static void gen_affine_tiles(uint16_t *char_base, uint16_t *screen_base, int screen_size_tiles) {
-    palRAM[0] = 0x4210;
-    palRAM[1] = 0x001F;
-    palRAM[2] = 0x03F0;
-    palRAM[3] = 0x7FE0;
-    palRAM[4] = 0x7C10;
+    palette_ram[0] = 0x4210;
+    palette_ram[1] = 0x001F;
+    palette_ram[2] = 0x03F0;
+    palette_ram[3] = 0x7FE0;
+    palette_ram[4] = 0x7C10;
 
-    palRAM[5] = 0x0010;
-    palRAM[6] = 0x0308;
-    palRAM[7] = 0x4200;
-    palRAM[8] = 0x4008;
+    palette_ram[5] = 0x0010;
+    palette_ram[6] = 0x0308;
+    palette_ram[7] = 0x4200;
+    palette_ram[8] = 0x4008;
 
     for(int i = 0; i < 4; i++) {
         uint8_t a = i + 1;
@@ -88,7 +88,7 @@ void display_layer2_mode1() {
     reset_affine();
 
     // generate some 8bpp tiles
-    gen_affine_tiles(videoRAM, videoRAM + 0x800, 16);
+    gen_affine_tiles(video_ram, video_ram + 0x800, 16);
 
     wait_for_exit();
 }
@@ -107,7 +107,7 @@ void display_layer2_mode1_char_base() {
     reset_affine();
 
     // generate some 8bpp tiles
-    gen_affine_tiles(videoRAM + 0x2000, videoRAM + 0x800, 16);
+    gen_affine_tiles(video_ram + 0x2000, video_ram + 0x800, 16);
 
     wait_for_exit();
 }
@@ -128,7 +128,7 @@ void display_layer2_mode1_wrap() {
     reg::bg2y::write(-16);
 
     // generate some 8bpp tiles
-    gen_affine_tiles(videoRAM, videoRAM + 0x800, 16);
+    gen_affine_tiles(video_ram, video_ram + 0x800, 16);
 
     wait_for_exit();
 }
@@ -152,7 +152,7 @@ static void size_test(screen_size size) {
     reg::bg2y::write((size_px - 160) / 2);
 
     // generate some 8bpp tiles
-    gen_affine_tiles(videoRAM, videoRAM + 0x800, size_px / 8);
+    gen_affine_tiles(video_ram, video_ram + 0x800, size_px / 8);
 
     wait_for_exit();
 }
@@ -194,7 +194,7 @@ void display_layer2_mode1_rotscale() {
     bios::bg_affine_set(&input, output, 1);
 
     // generate some 8bpp tiles
-    gen_affine_tiles(videoRAM, videoRAM + 0x800, 16);
+    gen_affine_tiles(video_ram, video_ram + 0x800, 16);
 
     wait_for_exit();
 }
@@ -226,7 +226,7 @@ void display_layer2_mode2() {
     bios::bg_affine_set(&input, output, 1);
 
     // generate some 8bpp tiles
-    gen_affine_tiles(videoRAM, videoRAM + 0x800, 16);
+    gen_affine_tiles(video_ram, video_ram + 0x800, 16);
 
     wait_for_exit();
 }
@@ -249,7 +249,7 @@ void display_layer2_mode3() {
 
     for(int y = 0; y < 160; y++) {
         for(int x = 0; x < 240; x++) {
-            videoRAM[x + y * 240] = (x / 8) | (y / 5) << 5 | (0x1F - x / 8) << 10;
+            video_ram[x + y * 240] = (x / 8) | (y / 5) << 5 | (0x1F - x / 8) << 10;
         }
     }
 
@@ -282,7 +282,7 @@ void display_layer2_mode3_rotscale() {
 
     for(int y = 0; y < 160; y++) {
         for(int x = 0; x < 240; x++) {
-            videoRAM[x + y * 240] = (x / 8) | (y / 5) << 5 | (0x1F - x / 8) << 10;
+            video_ram[x + y * 240] = (x / 8) | (y / 5) << 5 | (0x1F - x / 8) << 10;
         }
     }
 
@@ -305,7 +305,7 @@ void display_layer2_mode4() {
     reset_affine();
 
     for(int i = 1; i < 256; i++)
-        palRAM[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
+        palette_ram[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
 
     for(int y = 0; y < 160; y++) {
         for(int x = 0; x < 240; x += 2) {
@@ -315,7 +315,7 @@ void display_layer2_mode4() {
 
             int pal_index2 = pal_index == 255 ? 255 : pal_index + 1;
 
-            videoRAM[(x + y * 240) / 2] = pal_index | (pal_index2) << 8;
+            video_ram[(x + y * 240) / 2] = pal_index | (pal_index2) << 8;
         }
     }
 
@@ -334,7 +334,7 @@ void display_layer2_mode4_pageflip() {
     reset_affine();
 
     for(int i = 1; i < 256; i++)
-        palRAM[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
+        palette_ram[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
 
     for(int y = 0; y < 160; y++) {
         for(int x = 0; x < 240; x += 2) {
@@ -344,9 +344,9 @@ void display_layer2_mode4_pageflip() {
 
             int pal_index2 = pal_index == 255 ? 255 : pal_index + 1;
 
-            videoRAM[(x + y * 240) / 2] = 0xFFFF; // fill page 0 with solid red
+            video_ram[(x + y * 240) / 2] = 0xFFFF; // fill page 0 with solid red
 
-            videoRAM[(x + y * 240 + 0xA000) / 2] = pal_index | (pal_index2) << 8;
+            video_ram[(x + y * 240 + 0xA000) / 2] = pal_index | (pal_index2) << 8;
         }
     }
 
@@ -376,7 +376,7 @@ void display_layer2_mode4_rotscale() {
     bios::bg_affine_set(&input, output, 1);
 
     for(int i = 1; i < 256; i++)
-        palRAM[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
+        palette_ram[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
 
     for(int y = 0; y < 160; y++) {
         for(int x = 0; x < 240; x += 2) {
@@ -386,7 +386,7 @@ void display_layer2_mode4_rotscale() {
 
             int pal_index2 = pal_index == 255 ? 255 : pal_index + 1;
 
-            videoRAM[(x + y * 240) / 2] = pal_index | (pal_index2) << 8;
+            video_ram[(x + y * 240) / 2] = pal_index | (pal_index2) << 8;
         }
     }
 
@@ -410,7 +410,7 @@ void display_layer2_mode5() {
 
     for(int y = 0; y < 128; y++) {
         for(int x = 0; x < 160; x++) {
-            videoRAM[x + y * 160] = (x / 5) | (y / 4) << 5 | (0x1F - x / 5) << 10;
+            video_ram[x + y * 160] = (x / 5) | (y / 4) << 5 | (0x1F - x / 5) << 10;
         }
     }
 
@@ -431,8 +431,8 @@ void display_layer2_mode5_pageflip() {
 
     for(int y = 0; y < 128; y++) {
         for(int x = 0; x < 160; x++) {
-            videoRAM[x + y * 160] = 0x001F; // fill page 0 with solid red
-            videoRAM[x + y * 160 + 0xA000 / 2] = (x / 5) | (y / 4) << 5 | (0x1F - x / 5) << 10;
+            video_ram[x + y * 160] = 0x001F; // fill page 0 with solid red
+            video_ram[x + y * 160 + 0xA000 / 2] = (x / 5) | (y / 4) << 5 | (0x1F - x / 5) << 10;
         }
     }
 
@@ -463,7 +463,7 @@ void display_layer2_mode5_rotscale() {
 
     for(int y = 0; y < 128; y++) {
         for(int x = 0; x < 160; x++) {
-            videoRAM[x + y * 160] = (x / 5) | (y / 4) << 5 | (0x1F - x / 5) << 10;
+            video_ram[x + y * 160] = (x / 5) | (y / 4) << 5 | (0x1F - x / 5) << 10;
         }
     }
 

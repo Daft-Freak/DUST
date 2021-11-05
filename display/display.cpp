@@ -12,22 +12,22 @@ void display_layer_none() {
     reg::dispcnt::write({});
 
     // should get backdrop
-    palRAM[0] = 0x7C10;
+    palette_ram[0] = 0x7C10;
 
     // put some junk in the other colours
     for(int i = 1; i < 256; i++)
-        palRAM[i] = (i * 0x1F2E3D4C) >> 16;
+        palette_ram[i] = (i * 0x1F2E3D4C) >> 16;
 
     // and fill vram with more junk
     for(int i = 0; i < 0x8000; i++)
-        videoRAM[i] = i;
+        video_ram[i] = i;
 
     wait_for_exit();
 }
 
 void display_cgb_mode() {
     clear_text();
-    palRAM[1] = 0x1F;
+    palette_ram[1] = 0x1F;
 
     // shouldn't be set for AGB mode
     if(reg::dispcnt::read().color_game_boy) {
@@ -45,13 +45,13 @@ void display_cgb_mode() {
         return wait_for_exit();
     }
 
-    palRAM[0] = 0x7C10;
+    palette_ram[0] = 0x7C10;
 
     wait_for_exit();
 }
 
 void display_forced_blank() {
-    palRAM[0] = 0;
+    palette_ram[0] = 0;
 
     write_text(0, 10, "     That didn't work...     ");
 
@@ -94,39 +94,39 @@ void display_priority_default() {
     });
 
     // palette
-    palRAM[0] = 0x4210;
-    palRAM[1] = 0x03F0;
-    palRAM[2] = 0x001F;
-    palRAM[3] = 0x7C10;
-    palRAM[4] = 0x7FE0;
+    palette_ram[0] = 0x4210;
+    palette_ram[1] = 0x03F0;
+    palette_ram[2] = 0x001F;
+    palette_ram[3] = 0x7C10;
+    palette_ram[4] = 0x7FE0;
 
     // fill each layer with a single tile
-    agbabi::wordset4(videoRAM + 0x0400, 0x800, 0x00010001);
-    agbabi::wordset4(videoRAM + 0x0800, 0x800, 0x00020002);
-    agbabi::wordset4(videoRAM + 0x0C00, 0x800, 0x00030003);
-    agbabi::wordset4(videoRAM + 0x1000, 0x800, 0x00040004);
+    agbabi::wordset4(video_ram + 0x0400, 0x800, 0x00010001);
+    agbabi::wordset4(video_ram + 0x0800, 0x800, 0x00020002);
+    agbabi::wordset4(video_ram + 0x0C00, 0x800, 0x00030003);
+    agbabi::wordset4(video_ram + 0x1000, 0x800, 0x00040004);
 
     // generate some tiles
     int i = 0;
 
     for(int y = 0; y < 8; y++) {
-        videoRAM[i++] = 0x0000; videoRAM[i++] = 0x0000;
+        video_ram[i++] = 0x0000; video_ram[i++] = 0x0000;
     }
 
     for(int y = 0; y < 8; y++) {
-        videoRAM[i++] = 0x0010; videoRAM[i++] = 0x0000;
+        video_ram[i++] = 0x0010; video_ram[i++] = 0x0000;
     }
 
     for(int y = 0; y < 8; y++) {
-        videoRAM[i++] = 0x0022; videoRAM[i++] = 0x0000;
+        video_ram[i++] = 0x0022; video_ram[i++] = 0x0000;
     }
 
     for(int y = 0; y < 8; y++) {
-        videoRAM[i++] = 0x3033; videoRAM[i++] = 0x0000;
+        video_ram[i++] = 0x3033; video_ram[i++] = 0x0000;
     }
 
     for(int y = 0; y < 8; y++) {
-        videoRAM[i++] = 0x4444; videoRAM[i++] = 0x0000;
+        video_ram[i++] = 0x4444; video_ram[i++] = 0x0000;
     }
 
     wait_for_exit();
@@ -218,22 +218,22 @@ void display_stat_flags() {
         .layer_background_2 = true
     });
 
-    agbabi::wordset4(videoRAM, 240 * 160 * 2, 0);
+    agbabi::wordset4(video_ram, 240 * 160 * 2, 0);
 
     for(int i = 0; i < 228; i++) {
-        videoRAM[i + 0 * 240] = (stat[i] & (1 << 0)) ? 0x03E0 : 0x001F;
-        videoRAM[i + 2 * 240] = (stat[i] & (1 << 1)) ? 0x03E0 : 0x001F;
-        videoRAM[i + 4 * 240] = (stat[i] & (1 << 2)) ? 0x03E0 : 0x001F;
+        video_ram[i + 0 * 240] = (stat[i] & (1 << 0)) ? 0x03E0 : 0x001F;
+        video_ram[i + 2 * 240] = (stat[i] & (1 << 1)) ? 0x03E0 : 0x001F;
+        video_ram[i + 4 * 240] = (stat[i] & (1 << 2)) ? 0x03E0 : 0x001F;
 
         // hblank irq
-        videoRAM[i +  8 * 240] = (stat_hblank_irq[i] & (1 << 0)) ? 0x03E0 : 0x001F;
-        videoRAM[i + 10 * 240] = (stat_hblank_irq[i] & (1 << 1)) ? 0x03E0 : 0x001F;
-        videoRAM[i + 12 * 240] = (stat_hblank_irq[i] & (1 << 2)) ? 0x03E0 : 0x001F;
+        video_ram[i +  8 * 240] = (stat_hblank_irq[i] & (1 << 0)) ? 0x03E0 : 0x001F;
+        video_ram[i + 10 * 240] = (stat_hblank_irq[i] & (1 << 1)) ? 0x03E0 : 0x001F;
+        video_ram[i + 12 * 240] = (stat_hblank_irq[i] & (1 << 2)) ? 0x03E0 : 0x001F;
 
         // hblank dma
-        videoRAM[i + 16 * 240] = (stat_hblank_dma[i] & (1 << 0)) ? 0x03E0 : 0x001F;
-        videoRAM[i + 18 * 240] = (stat_hblank_dma[i] & (1 << 1)) ? 0x03E0 : 0x001F;
-        videoRAM[i + 20 * 240] = (stat_hblank_dma[i] & (1 << 2)) ? 0x03E0 : 0x001F;
+        video_ram[i + 16 * 240] = (stat_hblank_dma[i] & (1 << 0)) ? 0x03E0 : 0x001F;
+        video_ram[i + 18 * 240] = (stat_hblank_dma[i] & (1 << 1)) ? 0x03E0 : 0x001F;
+        video_ram[i + 20 * 240] = (stat_hblank_dma[i] & (1 << 2)) ? 0x03E0 : 0x001F;
     }
 
     wait_for_exit();

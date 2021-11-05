@@ -5,12 +5,12 @@
 
 void clear_text() {
     // clear char block 2-3
-    gba::agbabi::wordset4(videoRAM + 0x800, 0x800 * 2, 0);
+    gba::agbabi::wordset4(video_ram + 0x800, 0x800 * 2, 0);
 }
 
 void write_text(int x, int y, const char *text) {
     // char block 2
-    auto ptr = videoRAM + 0x800 + x + y * 32;
+    auto ptr = video_ram + 0x800 + x + y * 32;
 
     for(; *text; text++)
         *ptr++ = *text - ' ';
