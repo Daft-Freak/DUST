@@ -16,6 +16,7 @@ set(SOURCES
     display/display.cpp
     display/layer0.cpp
     display/layer2.cpp
+    display/objects.cpp
     common.cpp
     main.cpp
 )
@@ -82,6 +83,16 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_layer2_mode5
         display_layer2_mode5_pageflip
         display_layer2_mode5_rotscale
+        display_obj_regular
+        display_obj_affine
+        display_obj_affine_double
+        display_obj_hidden
+        display_obj_regular_8bpp
+        display_obj_affine_8bpp
+        display_obj_regular_hflip
+        display_obj_regular_vflip
+        display_obj_regular_hvflip
+        display_obj_regular_4bpp_pal
     )
 
     foreach(TEST ${TESTS})

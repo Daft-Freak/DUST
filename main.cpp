@@ -68,6 +68,16 @@ static test_info tests[] {
     {"Display/Layer 2 mode 5", display_layer2_mode5},
     {"Display/Layer 2 m5 pageflip", display_layer2_mode5_pageflip},
     {"Display/Layer 2 m5 rotscale", display_layer2_mode5_rotscale},
+    {"Display/Objects regular", display_obj_regular},
+    {"Display/Objects affine", display_obj_affine},
+    {"Display/Objects affine 2x", display_obj_affine_double},
+    {"Display/Objects hidden", display_obj_hidden},
+    {"Display/Objects regular 8bpp", display_obj_regular_8bpp},
+    {"Display/Objects affine 8bpp", display_obj_affine_8bpp},
+    {"Display/Objects reg hflip", display_obj_regular_hflip},
+    {"Display/Objects reg vflip", display_obj_regular_vflip},
+    {"Display/Objects reg hvflip", display_obj_regular_hvflip},
+    {"Display/Objects reg 4bpp pal", display_obj_regular_4bpp_pal},
 };
 
 static void init_display() {
