@@ -77,7 +77,12 @@ static test_info tests[] {
     {"Display/Objects reg hflip", display_obj_regular_hflip},
     {"Display/Objects reg vflip", display_obj_regular_vflip},
     {"Display/Objects reg hvflip", display_obj_regular_hvflip},
+    {"Display/Objects aff rotscale", display_obj_affine_rotscale},
+    {"Display/Objects aff dbl rtscl", display_obj_affine_double_rotscale},
     {"Display/Objects reg 4bpp pal", display_obj_regular_4bpp_pal},
+    {"Display/Objects wrap x", display_obj_wrap_x},
+    {"Display/Objects wrap y", display_obj_wrap_y},
+    {"Display/Objects wrap y bug", display_obj_wrap_y_bug},
 };
 
 static void init_display() {
