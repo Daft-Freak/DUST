@@ -30,59 +30,75 @@ struct test_info {
     void (*func)();
 };
 
-static test_info tests[] {
-    {"Display/No layers" , display_layer_none},
-    {"Display/CGB mode" , display_cgb_mode},
-    {"Display/Forced blank", display_forced_blank},
-    {"Display/Default priority", display_priority_default},
-    {"Display/STAT flags", display_stat_flags},
-    {"Display/Layer 0 char base", display_layer0_char_base},
-    {"Display/Layer 0 4bpp", display_layer0_4bpp},
-    {"Display/Layer 0 8bpp", display_layer0_8bpp},
-    {"Display/Layer 0 size 0", display_layer0_size0},
-    {"Display/Layer 0 size 1", display_layer0_size1},
-    {"Display/Layer 0 size 2", display_layer0_size2},
-    {"Display/Layer 0 size 3", display_layer0_size3},
-    {"Display/Layer 0 flip", display_layer0_flip},
-    {"Display/Layer 0 mode 1", display_layer0_mode1},
-    {"Display/Layer 0 mode 2", display_layer0_mode2},
-    {"Display/Layer 0 mode 3", display_layer0_mode3},
-    {"Display/Layer 0 mode 4", display_layer0_mode4},
-    {"Display/Layer 0 mode 5", display_layer0_mode5},
-    {"Display/Layer 0 cb invalid", display_layer0_char_base_invalid},
-    {"Display/Layer 0 sb invalid", display_layer0_screen_base_invalid},
-    {"Display/Layer 2 mode 0", display_layer2_mode0},
-    {"Display/Layer 2 mode 1", display_layer2_mode1},
-    {"Display/Layer 2 m1 char base", display_layer2_mode1_char_base},
-    {"Display/Layer 2 m1 wrap", display_layer2_mode1_wrap},
-    {"Display/Layer 2 m1 size 1", display_layer2_mode1_size1},
-    {"Display/Layer 2 m1 size 2", display_layer2_mode1_size2},
-    {"Display/Layer 2 m1 size 3", display_layer2_mode1_size3},
-    {"Display/Layer 2 m1 rotscale", display_layer2_mode1_rotscale},
-    {"Display/Layer 2 mode 2", display_layer2_mode2},
-    {"Display/Layer 2 mode 3", display_layer2_mode3},
-    {"Display/Layer 2 m3 rotscale", display_layer2_mode3_rotscale},
-    {"Display/Layer 2 mode 4", display_layer2_mode4},
-    {"Display/Layer 2 m4 pageflip", display_layer2_mode4_pageflip},
-    {"Display/Layer 2 m4 rotscale", display_layer2_mode4_rotscale},
-    {"Display/Layer 2 mode 5", display_layer2_mode5},
-    {"Display/Layer 2 m5 pageflip", display_layer2_mode5_pageflip},
-    {"Display/Layer 2 m5 rotscale", display_layer2_mode5_rotscale},
-    {"Display/Objects regular", display_obj_regular},
-    {"Display/Objects affine", display_obj_affine},
-    {"Display/Objects affine 2x", display_obj_affine_double},
-    {"Display/Objects hidden", display_obj_hidden},
-    {"Display/Objects regular 8bpp", display_obj_regular_8bpp},
-    {"Display/Objects affine 8bpp", display_obj_affine_8bpp},
-    {"Display/Objects reg hflip", display_obj_regular_hflip},
-    {"Display/Objects reg vflip", display_obj_regular_vflip},
-    {"Display/Objects reg hvflip", display_obj_regular_hvflip},
-    {"Display/Objects aff rotscale", display_obj_affine_rotscale},
-    {"Display/Objects aff dbl rtscl", display_obj_affine_double_rotscale},
-    {"Display/Objects reg 4bpp pal", display_obj_regular_4bpp_pal},
-    {"Display/Objects wrap x", display_obj_wrap_x},
-    {"Display/Objects wrap y", display_obj_wrap_y},
-    {"Display/Objects wrap y bug", display_obj_wrap_y_bug},
+static void display_layer0_test_list();
+static void display_layer2_test_list();
+static void display_object_test_list();
+
+static const std::array tests {
+    test_info {"Display/No layers" , display_layer_none},
+    test_info {"Display/CGB mode" , display_cgb_mode},
+    test_info {"Display/Forced blank", display_forced_blank},
+    test_info {"Display/Default priority", display_priority_default},
+    test_info {"Display/STAT flags", display_stat_flags},
+    test_info {"Display/Layer 0            >", display_layer0_test_list},
+    test_info {"Display/Layer 2            >", display_layer2_test_list},
+    test_info {"Display/Objects            >", display_object_test_list},
+};
+
+static const std::array display_layer0_tests {
+    test_info {"Display/Layer 0 char base", display_layer0_char_base},
+    test_info {"Display/Layer 0 4bpp", display_layer0_4bpp},
+    test_info {"Display/Layer 0 8bpp", display_layer0_8bpp},
+    test_info {"Display/Layer 0 size 0", display_layer0_size0},
+    test_info {"Display/Layer 0 size 1", display_layer0_size1},
+    test_info {"Display/Layer 0 size 2", display_layer0_size2},
+    test_info {"Display/Layer 0 size 3", display_layer0_size3},
+    test_info {"Display/Layer 0 flip", display_layer0_flip},
+    test_info {"Display/Layer 0 mode 1", display_layer0_mode1},
+    test_info {"Display/Layer 0 mode 2", display_layer0_mode2},
+    test_info {"Display/Layer 0 mode 3", display_layer0_mode3},
+    test_info {"Display/Layer 0 mode 4", display_layer0_mode4},
+    test_info {"Display/Layer 0 mode 5", display_layer0_mode5},
+    test_info {"Display/Layer 0 cb invalid", display_layer0_char_base_invalid},
+    test_info {"Display/Layer 0 sb invalid", display_layer0_screen_base_invalid},
+};
+
+static const std::array display_layer2_tests {
+    test_info {"Display/Layer 2 mode 0", display_layer2_mode0},
+    test_info {"Display/Layer 2 mode 1", display_layer2_mode1},
+    test_info {"Display/Layer 2 m1 char base", display_layer2_mode1_char_base},
+    test_info {"Display/Layer 2 m1 wrap", display_layer2_mode1_wrap},
+    test_info {"Display/Layer 2 m1 size 1", display_layer2_mode1_size1},
+    test_info {"Display/Layer 2 m1 size 2", display_layer2_mode1_size2},
+    test_info {"Display/Layer 2 m1 size 3", display_layer2_mode1_size3},
+    test_info {"Display/Layer 2 m1 rotscale", display_layer2_mode1_rotscale},
+    test_info {"Display/Layer 2 mode 2", display_layer2_mode2},
+    test_info {"Display/Layer 2 mode 3", display_layer2_mode3},
+    test_info {"Display/Layer 2 m3 rotscale", display_layer2_mode3_rotscale},
+    test_info {"Display/Layer 2 mode 4", display_layer2_mode4},
+    test_info {"Display/Layer 2 m4 pageflip", display_layer2_mode4_pageflip},
+    test_info {"Display/Layer 2 m4 rotscale", display_layer2_mode4_rotscale},
+    test_info {"Display/Layer 2 mode 5", display_layer2_mode5},
+    test_info {"Display/Layer 2 m5 pageflip", display_layer2_mode5_pageflip},
+    test_info {"Display/Layer 2 m5 rotscale", display_layer2_mode5_rotscale},
+};
+
+static const std::array display_object_tests {
+    test_info {"Display/Objects regular", display_obj_regular},
+    test_info {"Display/Objects affine", display_obj_affine},
+    test_info {"Display/Objects affine 2x", display_obj_affine_double},
+    test_info {"Display/Objects hidden", display_obj_hidden},
+    test_info {"Display/Objects regular 8bpp", display_obj_regular_8bpp},
+    test_info {"Display/Objects affine 8bpp", display_obj_affine_8bpp},
+    test_info {"Display/Objects reg hflip", display_obj_regular_hflip},
+    test_info {"Display/Objects reg vflip", display_obj_regular_vflip},
+    test_info {"Display/Objects reg hvflip", display_obj_regular_hvflip},
+    test_info {"Display/Objects aff rotscale", display_obj_affine_rotscale},
+    test_info {"Display/Objects aff dbl rtscl", display_obj_affine_double_rotscale},
+    test_info {"Display/Objects reg 4bpp pal", display_obj_regular_4bpp_pal},
+    test_info {"Display/Objects wrap x", display_obj_wrap_x},
+    test_info {"Display/Objects wrap y", display_obj_wrap_y},
+    test_info {"Display/Objects wrap y bug", display_obj_wrap_y_bug},
 };
 
 static void init_display() {
@@ -102,33 +118,23 @@ static void init_display() {
     reg::bg0vofs::write(0);
 
     load_font();
+}
 
-#ifndef SINGLE_TEST
+static void draw_menu(const auto &tests) {
     clear_text();
 
     // menu
     write_text(0, 1, "Dafts Useful(?) Suite of Tests");
 
     int y = 3;
-    for(auto &test : tests)
+    for(const auto &test : tests)
         write_text(2, y++, test.name);
-
-#endif
 }
 
-int main(int argc, char * argv[]) {
-    reg::dispstat::write({.vblank_irq = true});
-    reg::ie::write({.vblank = true});
-    reg::ime::emplace(true);
-
-    init_display();
-
-#ifdef SINGLE_TEST
-    while(true) {
-        SINGLE_TEST();
-    }
-#else
+static void test_list(const auto &tests) {
     int item = 0;
+
+    draw_menu(tests);
 
     while(true) {
         keypad_man.poll();
@@ -145,13 +151,45 @@ int main(int argc, char * argv[]) {
         if(keypad_man.switched_up(key::button_a)) {
             tests[item].func();
             init_display(); // reload after test
+            draw_menu(tests);
         }
+        // return to previous menu
+        else if(keypad_man.switched_up(gba::key::button_b))
+            return;
 
         // scroll to current item
         reg::bg0vofs::write(std::max(0, (item + 3) * 8 - 80));
 
         write_text(1, item + 3, ">");
     }
+}
+
+// sub menus
+static void display_layer0_test_list() {
+    test_list(display_layer0_tests);
+}
+
+static void display_layer2_test_list() {
+    test_list(display_layer2_tests);
+}
+
+static void display_object_test_list() {
+    test_list(display_object_tests);
+}
+
+int main(int argc, char * argv[]) {
+    reg::dispstat::write({.vblank_irq = true});
+    reg::ie::write({.vblank = true});
+    reg::ime::emplace(true);
+
+    init_display();
+
+#ifdef SINGLE_TEST
+    while(true)
+        SINGLE_TEST();
+#else
+    while(true)
+        test_list(tests);
 #endif
 
     __builtin_unreachable();
