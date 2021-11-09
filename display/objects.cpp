@@ -1055,3 +1055,176 @@ void display_obj_wrap_y_bug() {
 
     wait_for_exit();
 }
+
+void display_obj_bmp_char_base() {
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    // first 16 is used by background so these can't be used
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    // this should be okay
+    agbabi::memcpy2(video_ram + 0x14000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 3, // bitmap
+        .layer_object = true,
+    });
+
+    // this sprite won't be shown
+    set_object(0, object::attr0 {
+        .y = 16,
+    }, object::attr1_regular {
+        .x = 16,
+        .size = 3
+    }, object::attr2 {
+        .tile_index = 20
+    });
+
+    // this one will
+    set_object(1, object::attr0 {
+        .y = 16,
+    }, object::attr1_regular {
+        .x = 64 + 32,
+        .size = 3
+    }, object::attr2 {
+        .tile_index = 20 + 512
+    });
+
+    // hide everything else off-screen
+    for(int i = 2; i < 128; i++) {
+        oam_reg[i].attr0 = {.y = 160};
+    }
+
+    wait_for_exit();
+}
+
+static void object_limit_test(uint16_t size, object::mode mode = object::mode::regular, int x_off = 0, bool partial_hidden = false) {
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_object = true,
+    });
+
+    const uint16_t tiles[]{0, 3, 10, 20};
+
+    int y_mask = (4 << size) - 1;
+
+    for(int i = 0; i < 128; i++) {
+        set_object(i, object::attr0 {
+            .y = uint16_t(i & y_mask),
+            .object_mode = partial_hidden && i < 64 ? object::mode::hidden : mode
+        }, object::attr1_regular {
+            .x = uint16_t(i + x_off),
+            .size = size
+        }, object::attr2 {
+            .tile_index = tiles[size]
+        });
+    }
+
+    oam_reg[0].attr3 = mode == object::mode::affine_double ? 0x80 : 0x100;
+    oam_reg[1].attr3 = 0;
+    oam_reg[2].attr3 = 0;
+    oam_reg[3].attr3 = mode == object::mode::affine_double ? 0x80 : 0x100;
+}
+
+void display_obj_line_limit_regular_size0() {
+    object_limit_test(0);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_regular_size1() {
+    object_limit_test(1);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_regular_size2() {
+    object_limit_test(2);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_regular_size3() {
+    object_limit_test(3);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_size0() {
+    object_limit_test(0, object::mode::affine);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_size1() {
+    object_limit_test(1, object::mode::affine);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_size2() {
+    object_limit_test(2, object::mode::affine);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_size3() {
+    object_limit_test(3, object::mode::affine);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_double_size0() {
+    object_limit_test(0, object::mode::affine_double);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_double_size1() {
+    object_limit_test(1, object::mode::affine_double);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_double_size2() {
+    object_limit_test(2, object::mode::affine_double);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_affine_double_size3() {
+    object_limit_test(3, object::mode::affine_double);
+    wait_for_exit();
+}
+
+// not testing every variant because there are already too many tests here...
+void display_obj_line_limit_regular_offscreen() {
+    // move some of the sprites off the screen
+    object_limit_test(2, object::mode::regular, -64);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_regular_hidden() {
+    // first half set to hidden
+    object_limit_test(2, object::mode::regular, 0, true);
+    wait_for_exit();
+}
+
+void display_obj_line_limit_regular_size0_hblank_access() {
+    object_limit_test(0);
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .oam_hblank_access = oam_hblank_access::unlocked,
+        .layer_object = true,
+    });
+    wait_for_exit();
+}
+
+void display_obj_line_limit_regular_size2_hblank_access() {
+    object_limit_test(2);
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .oam_hblank_access = oam_hblank_access::unlocked,
+        .layer_object = true,
+    });
+    wait_for_exit();
+}

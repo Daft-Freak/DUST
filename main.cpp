@@ -99,6 +99,23 @@ static const std::array display_object_tests {
     test_info {"Display/Objects wrap x", display_obj_wrap_x},
     test_info {"Display/Objects wrap y", display_obj_wrap_y},
     test_info {"Display/Objects wrap y bug", display_obj_wrap_y_bug},
+    test_info {"Display/Objects bmp char base", display_obj_bmp_char_base},
+    test_info {"Display/Objects limit reg s0", display_obj_line_limit_regular_size0},
+    test_info {"Display/Objects limit reg s1", display_obj_line_limit_regular_size1},
+    test_info {"Display/Objects limit reg s2", display_obj_line_limit_regular_size2},
+    test_info {"Display/Objects limit reg s3", display_obj_line_limit_regular_size3},
+    test_info {"Display/Objects limit aff s0", display_obj_line_limit_affine_size0},
+    test_info {"Display/Objects limit aff s1", display_obj_line_limit_affine_size1},
+    test_info {"Display/Objects limit aff s2", display_obj_line_limit_affine_size2},
+    test_info {"Display/Objects limit aff s3", display_obj_line_limit_affine_size3},
+    test_info {"Display/Objects limit dbl s0", display_obj_line_limit_affine_double_size0},
+    test_info {"Display/Objects limit dbl s1", display_obj_line_limit_affine_double_size1},
+    test_info {"Display/Objects limit dbl s2", display_obj_line_limit_affine_double_size2},
+    test_info {"Display/Objects limit dbl s3", display_obj_line_limit_affine_double_size3},
+    test_info {"Display/Objects limit offscr", display_obj_line_limit_regular_offscreen},
+    test_info {"Display/Objects limit hidden", display_obj_line_limit_regular_hidden},
+    test_info {"Display/Objects limit h acc0", display_obj_line_limit_regular_size0_hblank_access},
+    test_info {"Display/Objects limit h acc2", display_obj_line_limit_regular_size2_hblank_access},
 };
 
 static void init_display() {
