@@ -747,6 +747,45 @@ void display_obj_regular_4bpp_pal() {
     wait_for_exit();
 }
 
+void display_obj_regular_1d() {
+    // "regular" non-affine sprites, every size/shape
+
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .object_tile_map = object::tile_map::one_dimensional,
+        .layer_object = true,
+    });
+
+    setup_objects(object::mode::regular);
+
+    wait_for_exit();
+}
+
+void display_obj_regular_8bpp_1d() {
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .object_tile_map = object::tile_map::one_dimensional,
+        .layer_object = true,
+    });
+
+    setup_objects(object::mode::regular, color_depth::bpp_8);
+
+    wait_for_exit();
+}
+
+
 void display_obj_wrap_x() {
     palette_ram[0] = 0x4210;
 

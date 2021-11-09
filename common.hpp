@@ -62,6 +62,8 @@ void display_obj_regular_hvflip();
 void display_obj_affine_rotscale();
 void display_obj_affine_double_rotscale();
 void display_obj_regular_4bpp_pal();
+void display_obj_regular_1d();
+void display_obj_regular_8bpp_1d();
 void display_obj_wrap_x();
 void display_obj_wrap_y();
 void display_obj_wrap_y_bug();
