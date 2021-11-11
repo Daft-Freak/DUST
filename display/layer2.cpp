@@ -26,7 +26,7 @@ void display_layer2_mode0() {
     wait_for_exit();
 }
 
-static void gen_affine_tiles(uint16_t *char_base, uint16_t *screen_base, int screen_size_tiles) {
+void gen_affine_tiles(uint16_t *char_base, uint16_t *screen_base, int screen_size_tiles) {
     palette_ram[0] = 0x4210;
     palette_ram[1] = 0x001F;
     palette_ram[2] = 0x03F0;

@@ -33,6 +33,7 @@ struct test_info {
 static void display_layer0_test_list();
 static void display_layer2_test_list();
 static void display_object_test_list();
+static void display_window_test_list();
 
 static const std::array tests {
     test_info {"Display/No layers" , display_layer_none},
@@ -43,6 +44,7 @@ static const std::array tests {
     test_info {"Display/Layer 0            >", display_layer0_test_list},
     test_info {"Display/Layer 2            >", display_layer2_test_list},
     test_info {"Display/Objects            >", display_object_test_list},
+    test_info {"Display/Window             >", display_window_test_list},
 };
 
 static const std::array display_layer0_tests {
@@ -120,6 +122,19 @@ static const std::array display_object_tests {
     test_info {"Display/Objects limit h acc2", display_obj_line_limit_regular_size2_hblank_access},
 };
 
+static const std::array display_window_tests {
+    test_info {"Display/Window win0 bg", display_window_win0_bg},
+    test_info {"Display/Window win1 bg", display_window_win1_bg},
+    test_info {"Display/Window obj win bg", display_window_obj_win_bg},
+    test_info {"Display/Window priority", display_window_priority},
+    test_info {"Display/Window objects", display_window_objects},
+    test_info {"Display/Window win0 bg aff", display_window_win0_bg_affine},
+    test_info {"Display/Window invalid x1", display_window_invalid_x1},
+    test_info {"Display/Window invalid x2", display_window_invalid_x2},
+    test_info {"Display/Window invalid y1", display_window_invalid_y1},
+    test_info {"Display/Window invalid y2", display_window_invalid_y2},
+};
+
 static void init_display() {
     reg::dispcnt::write({
         .mode = 0,
@@ -194,6 +209,10 @@ static void display_layer2_test_list() {
 
 static void display_object_test_list() {
     test_list(display_object_tests);
+}
+
+static void display_window_test_list() {
+    test_list(display_window_tests);
 }
 
 int main(int argc, char * argv[]) {

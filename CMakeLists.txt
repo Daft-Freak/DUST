@@ -17,6 +17,7 @@ set(SOURCES
     display/layer0.cpp
     display/layer2.cpp
     display/objects.cpp
+    display/window.cpp
     common.cpp
     main.cpp
 )
@@ -117,6 +118,16 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_obj_line_limit_regular_hidden
         display_obj_line_limit_regular_size0_hblank_access
         display_obj_line_limit_regular_size2_hblank_access
+        display_window_win0_bg
+        display_window_win1_bg
+        display_window_obj_win_bg
+        display_window_priority
+        display_window_objects
+        display_window_win0_bg_affine
+        display_window_invalid_x1
+        display_window_invalid_x2
+        display_window_invalid_y1
+        display_window_invalid_y2
     )
 
     foreach(TEST ${TESTS})
