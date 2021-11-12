@@ -363,6 +363,309 @@ void display_window_win0_bg_affine() {
     wait_for_exit();
 }
 
+static void window_hblank_irq_handler(interrupt_mask mask) {
+    auto vcount = reg::vcount::read() + 1;
+
+    if(vcount > 160)
+        return;
+
+    if(vcount == 160)
+        vcount = 0;
+
+    if(vcount < 80) {
+        reg::win0h::write(window_dimension {
+            .end = uint8_t(121 + vcount),
+            .begin = uint8_t(120 - vcount),
+        });
+    } else {
+        reg::win0h::write(window_dimension {
+            .end = uint8_t(279 - vcount),
+            .begin = uint8_t(vcount - 40),
+        });
+    }
+}
+
+void display_window_hblank_irq() {
+    // changing window x start/end in a hblank irq
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_background_0 = true,
+        .layer_background_1 = true,
+        .layer_background_2 = true,
+        .layer_background_3 = true,
+        .layer_object = true,
+        .window_0 = true,
+    });
+
+    reg::win0h::write({
+        .end = 120,
+        .begin = 120,
+    });
+
+    reg::win0v::write({
+        .end = 150,
+        .begin = 10,
+    });
+
+    reg::winin::write({
+        .win0_bg3 = true,
+    });
+
+    reg::winout::write({
+        .win0_bg0 = true,
+    });
+
+    palette_ram[0] = 0x4210;
+
+    setup_layers();
+
+    // setup irq
+    agbabi::interrupt_handler::set(window_hblank_irq_handler);
+
+    reg::dispstat::write({
+        .vblank_irq = true,
+        .hblank_irq = true
+    });
+
+    reg::ie::write({
+        .vblank = true,
+        .hblank = true,
+    });
+
+    wait_for_exit();
+
+    agbabi::interrupt_handler::set(nullptr);
+
+    reg::dispstat::write({
+        .vblank_irq = true
+    });
+}
+
+// a hexagon
+static const window_dimension hex_win_dims[160] {
+    {144, 134},
+    {145, 130},
+    {146, 127},
+    {147, 123},
+    {148, 119},
+    {149, 116},
+    {150, 112},
+    {151, 108},
+    {152, 104},
+    {153, 101},
+    {154, 97},
+    {155, 93},
+    {156, 89},
+    {157, 86},
+    {158, 82},
+    {159, 78},
+    {160, 75},
+    {161, 71},
+    {162, 67},
+    {163, 63},
+    {164, 61},
+    {165, 61},
+    {166, 60},
+    {167, 60},
+    {168, 60},
+    {169, 60},
+    {170, 59},
+    {171, 59},
+    {172, 59},
+    {173, 59},
+    {174, 58},
+    {175, 58},
+    {176, 58},
+    {177, 57},
+    {178, 57},
+    {179, 57},
+    {180, 57},
+    {181, 56},
+    {182, 56},
+    {183, 56},
+    {184, 56},
+    {185, 55},
+    {186, 55},
+    {187, 55},
+    {188, 55},
+    {189, 54},
+    {190, 54},
+    {191, 54},
+    {192, 53},
+    {193, 53},
+    {194, 53},
+    {195, 53},
+    {196, 52},
+    {197, 52},
+    {198, 52},
+    {199, 52},
+    {200, 51},
+    {201, 51},
+    {201, 51},
+    {200, 51},
+    {200, 50},
+    {200, 50},
+    {200, 50},
+    {199, 49},
+    {199, 49},
+    {199, 49},
+    {198, 49},
+    {198, 48},
+    {198, 48},
+    {198, 48},
+    {197, 48},
+    {197, 47},
+    {197, 47},
+    {197, 47},
+    {196, 46},
+    {196, 46},
+    {196, 46},
+    {195, 46},
+    {195, 45},
+    {195, 45},
+    {195, 45},
+    {194, 45},
+    {194, 44},
+    {194, 44},
+    {194, 44},
+    {193, 44},
+    {193, 43},
+    {193, 43},
+    {193, 43},
+    {192, 42},
+    {192, 42},
+    {192, 42},
+    {191, 42},
+    {191, 41},
+    {191, 41},
+    {191, 41},
+    {190, 41},
+    {190, 40},
+    {190, 40},
+    {190, 40},
+    {189, 40},
+    {189, 41},
+    {189, 42},
+    {189, 43},
+    {188, 44},
+    {188, 45},
+    {188, 46},
+    {187, 47},
+    {187, 48},
+    {187, 49},
+    {187, 50},
+    {186, 51},
+    {186, 52},
+    {186, 53},
+    {186, 54},
+    {185, 55},
+    {185, 56},
+    {185, 57},
+    {184, 58},
+    {184, 59},
+    {184, 60},
+    {184, 61},
+    {183, 62},
+    {183, 63},
+    {183, 64},
+    {183, 65},
+    {182, 66},
+    {182, 67},
+    {182, 68},
+    {182, 69},
+    {181, 70},
+    {181, 71},
+    {181, 72},
+    {180, 73},
+    {180, 74},
+    {180, 75},
+    {180, 76},
+    {179, 77},
+    {175, 78},
+    {172, 79},
+    {168, 80},
+    {164, 81},
+    {161, 82},
+    {157, 83},
+    {153, 84},
+    {149, 85},
+    {146, 86},
+    {142, 87},
+    {138, 88},
+    {134, 89},
+    {131, 90},
+    {127, 91},
+    {123, 92},
+    {119, 93},
+    {116, 94},
+    {112, 95},
+    {108, 96},
+    {105, 97},
+    {101, 98},
+    {143, 138}, // first
+};
+
+static void window_vblank_irq_handler(interrupt_mask mask) {
+    reg::dma3cnt_h::write({});
+
+    reg::dma3sad::write(reinterpret_cast<uint32_t>(hex_win_dims));
+
+    reg::dma3cnt_h::write(dma_control {
+        .destination_control = dma_control::destination_address::fixed,
+        .source_control = dma_control::source_address::increment,
+        .repeat = true,
+        .type = dma_control::type::half,
+        .start_condition = dma_control::start::next_hblank,
+        .enable = true
+    });
+}
+
+void display_window_hblank_dma() {
+    // changing window x start/end in a hblank dma
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_background_0 = true,
+        .layer_background_1 = true,
+        .layer_background_2 = true,
+        .layer_background_3 = true,
+        .layer_object = true,
+        .window_0 = true,
+    });
+
+    reg::win0h::write({
+        .end = 120,
+        .begin = 10,
+    });
+
+    reg::win0v::write({
+        .end = 161,
+        .begin = 0,
+    });
+
+    reg::winin::write({
+        .win0_bg3 = true,
+    });
+
+    reg::winout::write({
+        .win0_bg0 = true,
+    });
+
+    palette_ram[0] = 0x4210;
+
+    setup_layers();
+
+    reg::dma3dad::write(reg::win0h::address);
+    reg::dma3cnt_l::write(1);
+
+    // need to reset every frame
+    agbabi::interrupt_handler::set(window_vblank_irq_handler);
+
+    wait_for_exit();
+
+    agbabi::interrupt_handler::set(nullptr);
+    reg::dma3cnt_h::write({});
+}
+
 void display_window_invalid_x1() {
     reg::dispcnt::write({
         .mode = 0,
@@ -542,6 +845,42 @@ void display_window_invalid_y2() {
     reg::winin::write({
         .win0_bg3 = true,
         .win1_bg2 = true,
+    });
+
+    reg::winout::write({
+        .win0_bg0 = true,
+    });
+
+    palette_ram[0] = 0x4210;
+
+    setup_layers();
+
+    wait_for_exit();
+}
+
+void display_window_invalid_y2_no_disable() {
+    // sets Y2 to > 228, causing the window to never disable
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_background_0 = true,
+        .layer_background_1 = true,
+        .layer_background_2 = true,
+        .layer_background_3 = true,
+        .layer_object = true,
+        .window_0 = true,
+    });
+
+    reg::win0h::write({
+        .end = 140,
+        .begin = 10,
+    });
+
+    reg::win0v::write({
+        .end = 229, // past the end of vblank, never triggers disable
+        .begin = 140,
+    });
+    reg::winin::write({
+        .win0_bg3 = true,
     });
 
     reg::winout::write({

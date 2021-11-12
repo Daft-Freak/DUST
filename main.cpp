@@ -129,10 +129,13 @@ static const std::array display_window_tests {
     test_info {"Display/Window priority", display_window_priority},
     test_info {"Display/Window objects", display_window_objects},
     test_info {"Display/Window win0 bg aff", display_window_win0_bg_affine},
+    test_info {"Display/Window hblank irq", display_window_hblank_irq},
+    test_info {"Display/Window hblank dma", display_window_hblank_dma},
     test_info {"Display/Window invalid x1", display_window_invalid_x1},
     test_info {"Display/Window invalid x2", display_window_invalid_x2},
     test_info {"Display/Window invalid y1", display_window_invalid_y1},
     test_info {"Display/Window invalid y2", display_window_invalid_y2},
+    test_info {"Display/Window inv y2 no dis", display_window_invalid_y2_no_disable},
 };
 
 static void init_display() {

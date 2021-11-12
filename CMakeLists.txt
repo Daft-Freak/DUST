@@ -16,6 +16,7 @@ set(SOURCES
     display/display.cpp
     display/layer0.cpp
     display/layer2.cpp
+    display/mosaic.cpp
     display/objects.cpp
     display/window.cpp
     common.cpp
@@ -124,10 +125,13 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_window_priority
         display_window_objects
         display_window_win0_bg_affine
+        display_window_hblank_irq
+        display_window_hblank_dma
         display_window_invalid_x1
         display_window_invalid_x2
         display_window_invalid_y1
         display_window_invalid_y2
+        display_window_invalid_y2_no_disable
     )
 
     foreach(TEST ${TESTS})
