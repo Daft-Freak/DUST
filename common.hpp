@@ -12,6 +12,9 @@ void write_text(int x, int y, const char *text);
 
 void wait_for_exit();
 
+// generates a pattern of colourful Xs
+void gen_affine_tiles(uint16_t *char_base, uint16_t *screen_base, int screen_size_tiles);
+
 // test declarations
 void display_layer_none();
 void display_cgb_mode();

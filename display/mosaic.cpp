@@ -83,10 +83,6 @@ void display_mosiac_mode0_4_4_scroll() {
    mosaic_mode0(5, 5, 1, 2);
 }
 
-// from layer2.cpp
-// TODO: I should really move this to common at this point
-void gen_affine_tiles(uint16_t *char_base, uint16_t *screen_base, int screen_size_tiles);
-
 static void mosaic_mode2(uint32_t size_x, uint32_t size_y, bool transform = false) {
     reg::dispcnt::write({
         .mode = 2,

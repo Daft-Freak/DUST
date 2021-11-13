@@ -307,9 +307,6 @@ void display_window_objects() {
     wait_for_exit();
 }
 
-// from layer2.cpp
-void gen_affine_tiles(uint16_t *char_base, uint16_t *screen_base, int screen_size_tiles);
-
 // affine verion
 void display_window_win0_bg_affine() {
     reg::dispcnt::write({
