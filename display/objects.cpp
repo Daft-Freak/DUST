@@ -7,19 +7,25 @@
 
 using namespace gba;
 
-inline auto oam_reg = reinterpret_cast<object_regular *>(0x07000000);
-inline auto oam_aff = reinterpret_cast<object_affine *>(0x07000000);
+static const int oam_addr = 0x07000000;
 
 static void set_object(int index, object::attr0 attr0, object::attr1_regular attr1, object::attr2 attr2) {
-    oam_reg[index].attr0 = attr0;
-    oam_reg[index].attr1 = attr1;
-    oam_reg[index].attr2 = attr2;
+    object_regular object {attr0, attr1, attr2};
+    agbabi::memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(object)), &object, sizeof(object));
 }
 
 static void set_object(int index, object::attr0 attr0, object::attr1_affine attr1, object::attr2 attr2) {
-    oam_aff[index].attr0 = attr0;
-    oam_aff[index].attr1 = attr1;
-    oam_aff[index].attr2 = attr2;
+    object_affine object{attr0, attr1, attr2};
+    agbabi::memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(object)), &object, sizeof(object));
+}
+
+static void set_affine_params(int index, uint16_t a, uint16_t b, uint16_t c, uint16_t d) {
+    auto ptr = reinterpret_cast<uint16_t *>(oam_addr + index * 8 * 4) + 3;
+
+    ptr[0] = a;
+    ptr[4] = b;
+    ptr[8] = c;
+    ptr[12] = d;
 }
 
 static void setup_objects(object::mode mode, color_depth depth = color_depth::bpp_4, bool flip_h = false, bool flip_v = false, uint16_t pal_num = 0) {
@@ -256,9 +262,8 @@ static void setup_objects(object::mode mode, color_depth depth = color_depth::bp
     });
 
     // hide everything else off-screen
-    for(int i = 12; i < 128; i++) {
-        oam_reg[i].attr0 = {.y = 160};
-    }
+    for(int i = 12; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
 }
 
 // mostly copy/paste... but sets affine_index
@@ -472,9 +477,8 @@ static void setup_affine_objects(object::mode mode, color_depth depth = color_de
     });
 
     // hide everything else off-screen
-    for(int i = 12; i < 128; i++) {
-        oam_reg[i].attr0 = {.y = 160};
-    }
+    for(int i = 12; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
 }
 
 
@@ -514,10 +518,7 @@ void display_obj_affine() {
     setup_objects(object::mode::affine);
 
     // init affine params
-    oam_reg[0].attr3 = 1 << 8;
-    oam_reg[1].attr3 = 0 << 8;
-    oam_reg[2].attr3 = 0 << 8;
-    oam_reg[3].attr3 = 1 << 8;
+    set_affine_params(0, 1 << 8, 0, 0, 1 << 8);
 
     wait_for_exit();
 }
@@ -539,10 +540,7 @@ void display_obj_affine_double() {
     setup_objects(object::mode::affine_double);
 
     // init affine params
-    oam_reg[0].attr3 = 1 << 8;
-    oam_reg[1].attr3 = 0 << 8;
-    oam_reg[2].attr3 = 0 << 8;
-    oam_reg[3].attr3 = 1 << 8;
+    set_affine_params(0, 1 << 8, 0, 0, 1 << 8);
 
     wait_for_exit();
 }
@@ -599,10 +597,7 @@ void display_obj_affine_8bpp() {
     setup_objects(object::mode::affine, color_depth::bpp_8);
 
     // init affine params
-    oam_reg[0].attr3 = 1 << 8;
-    oam_reg[1].attr3 = 0 << 8;
-    oam_reg[2].attr3 = 0 << 8;
-    oam_reg[3].attr3 = 1 << 8;
+    set_affine_params(0, 1 << 8, 0, 0, 1 << 8);
 
     wait_for_exit();
 }
@@ -666,11 +661,6 @@ void display_obj_regular_hvflip() {
 
 static void setup_affine_params() {
     for(int i = 0; i < 12; i++) {
-        oam_reg[i * 4 + 0].attr3 = 1 << 8;
-        oam_reg[i * 4 + 1].attr3 = 0 << 8;
-        oam_reg[i * 4 + 2].attr3 = 0 << 8;
-        oam_reg[i * 4 + 3].attr3 = 1 << 8;
-
         float scale = (i / 3 + 1) / 3.0f;
 
         if(i & 1)
@@ -686,7 +676,7 @@ static void setup_affine_params() {
         volatile uint32_t buf[2];
         memcpy((void *)buf, &input, sizeof(input));
 
-        bios::obj_affine_set(&input, reinterpret_cast<object::mat2 *>(&oam_reg[i * 4].attr3), 1, 8);
+        bios::obj_affine_set(&input, reinterpret_cast<object::mat2 *>(oam_addr + i * 8 * 4 + 6), 1, 8);
     }
 }
 
@@ -903,15 +893,11 @@ void display_obj_wrap_x() {
     });
 
     // hide everything else off-screen
-    for(int i = 10; i < 128; i++) {
-        oam_reg[i].attr0 = {.y = 160};
-    }
+    for(int i = 10; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
 
     // 2x scale
-    oam_reg[0].attr3 = 0x80;
-    oam_reg[1].attr3 = 0;
-    oam_reg[2].attr3 = 0;
-    oam_reg[3].attr3 = 0x80;
+    set_affine_params(0, 0x80, 0, 0, 0x80);
 
     wait_for_exit();
 }
@@ -1033,15 +1019,11 @@ void display_obj_wrap_y() {
     });
 
     // hide everything else off-screen
-    for(int i = 10; i < 128; i++) {
-        oam_reg[i].attr0 = {.y = 160};
-    }
+    for(int i = 10; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
 
     // 2x scale
-    oam_reg[0].attr3 = 0x80;
-    oam_reg[1].attr3 = 0;
-    oam_reg[2].attr3 = 0;
-    oam_reg[3].attr3 = 0x80;
+    set_affine_params(0, 0x80, 0, 0, 0x80);
 
     wait_for_exit();
 }
@@ -1082,15 +1064,11 @@ void display_obj_wrap_y_bug() {
     });
 
     // hide everything else off-screen
-    for(int i = 2; i < 128; i++) {
-        oam_reg[i].attr0 = {.y = 160};
-    }
+    for(int i = 2; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
 
     // 2x scale
-    oam_reg[0].attr3 = 0x80;
-    oam_reg[1].attr3 = 0;
-    oam_reg[2].attr3 = 0;
-    oam_reg[3].attr3 = 0x80;
+    set_affine_params(0, 0x80, 0, 0, 0x80);
 
     wait_for_exit();
 }
@@ -1132,9 +1110,8 @@ void display_obj_bmp_char_base() {
     });
 
     // hide everything else off-screen
-    for(int i = 2; i < 128; i++) {
-        oam_reg[i].attr0 = {.y = 160};
-    }
+    for(int i = 2; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
 
     wait_for_exit();
 }
@@ -1167,10 +1144,7 @@ static void object_limit_test(uint16_t size, object::mode mode = object::mode::r
         });
     }
 
-    oam_reg[0].attr3 = mode == object::mode::affine_double ? 0x80 : 0x100;
-    oam_reg[1].attr3 = 0;
-    oam_reg[2].attr3 = 0;
-    oam_reg[3].attr3 = mode == object::mode::affine_double ? 0x80 : 0x100;
+    set_affine_params(0, mode == object::mode::affine_double ? 0x80 : 0x100, 0, 0, mode == object::mode::affine_double ? 0x80 : 0x100);
 }
 
 void display_obj_line_limit_regular_size0() {
