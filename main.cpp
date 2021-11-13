@@ -34,6 +34,7 @@ static void display_layer0_test_list();
 static void display_layer2_test_list();
 static void display_object_test_list();
 static void display_window_test_list();
+static void display_mosaic_test_list();
 
 static const std::array tests {
     test_info {"Display/No layers" , display_layer_none},
@@ -45,6 +46,7 @@ static const std::array tests {
     test_info {"Display/Layer 2            >", display_layer2_test_list},
     test_info {"Display/Objects            >", display_object_test_list},
     test_info {"Display/Window             >", display_window_test_list},
+    test_info {"Display/Mosaic             >", display_mosaic_test_list},
 };
 
 static const std::array display_layer0_tests {
@@ -138,6 +140,45 @@ static const std::array display_window_tests {
     test_info {"Display/Window inv y2 no dis", display_window_invalid_y2_no_disable},
 };
 
+static const std::array display_mosaic_tests {
+    test_info {"Display/Mosaic mode 0 0", display_mosiac_mode0_0},
+    test_info {"Display/Mosaic mode 0 1x1", display_mosiac_mode0_1_1},
+    test_info {"Display/Mosaic mode 0 4x4", display_mosiac_mode0_4_4},
+    test_info {"Display/Mosaic mode 0 9x9", display_mosiac_mode0_9_9},
+    test_info {"Display/Mosaic mode 0 15x15", display_mosiac_mode0_15_15},
+    test_info {"Display/Mosaic mode 0 0x15", display_mosiac_mode0_0_15},
+    test_info {"Display/Mosaic mode 0 15x0", display_mosiac_mode0_15_0},
+    test_info {"Display/Mosaic m0 4x4 scroll", display_mosiac_mode0_4_4_scroll},
+    test_info {"Display/Mosaic mode 2 0", display_mosiac_mode2_0},
+    test_info {"Display/Mosaic mode 2 1x1", display_mosiac_mode2_1_1},
+    test_info {"Display/Mosaic mode 2 4x4", display_mosiac_mode2_4_4},
+    test_info {"Display/Mosaic mode 2 9x9", display_mosiac_mode2_9_9},
+    test_info {"Display/Mosaic mode 2 15x15", display_mosiac_mode2_15_15},
+    test_info {"Display/Mosaic mode 2 0x15", display_mosiac_mode2_0_15},
+    test_info {"Display/Mosaic mode 2 15x0", display_mosiac_mode2_15_0},
+    test_info {"Display/Mosaic m2 1x1 rtscl", display_mosiac_mode2_1_1_rotscale},
+    test_info {"Display/Mosaic m2 4x4 rtscl", display_mosiac_mode2_4_4_rotscale},
+    test_info {"Display/Mosaic m2 9x9 rtscl", display_mosiac_mode2_9_9_rotscale},
+    test_info {"Display/Mosaic m2 15x15 rtscl", display_mosiac_mode2_15_15_rotscale},
+    test_info {"Display/Mosaic m2 0x15 rtscl", display_mosiac_mode2_0_15_rotscale},
+    test_info {"Display/Mosaic m2 15x0 rtscl", display_mosiac_mode2_15_0_rotscale},
+    test_info {"Display/Mosaic mode 3 0", display_mosiac_mode3_0},
+    test_info {"Display/Mosaic mode 3 1x1", display_mosiac_mode3_1_1},
+    test_info {"Display/Mosaic mode 3 15x15", display_mosiac_mode3_15_15},
+    test_info {"Display/Mosaic mode 3 0x15", display_mosiac_mode3_0_15},
+    test_info {"Display/Mosaic mode 3 15x0", display_mosiac_mode3_15_0},
+    test_info {"Display/Mosaic mode 4 0", display_mosiac_mode4_0},
+    test_info {"Display/Mosaic mode 4 1x1", display_mosiac_mode4_1_1},
+    test_info {"Display/Mosaic mode 4 15x15", display_mosiac_mode4_15_15},
+    test_info {"Display/Mosaic mode 4 0x15", display_mosiac_mode4_0_15},
+    test_info {"Display/Mosaic mode 4 15x0", display_mosiac_mode4_15_0},
+    test_info {"Display/Mosaic mode 5 0", display_mosiac_mode5_0},
+    test_info {"Display/Mosaic mode 5 1x1", display_mosiac_mode5_1_1},
+    test_info {"Display/Mosaic mode 5 15x15", display_mosiac_mode5_15_15},
+    test_info {"Display/Mosaic mode 5 0x15", display_mosiac_mode5_0_15},
+    test_info {"Display/Mosaic mode 5 15x0", display_mosiac_mode5_15_0},
+};
+
 static void init_display() {
     reg::dispcnt::write({
         .mode = 0,
@@ -216,6 +257,10 @@ static void display_object_test_list() {
 
 static void display_window_test_list() {
     test_list(display_window_tests);
+}
+
+static void display_mosaic_test_list() {
+    test_list(display_mosaic_tests);
 }
 
 int main(int argc, char * argv[]) {

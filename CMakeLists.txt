@@ -132,6 +132,42 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_window_invalid_y1
         display_window_invalid_y2
         display_window_invalid_y2_no_disable
+        display_mosiac_mode0_0
+        display_mosiac_mode0_1_1
+        display_mosiac_mode0_4_4
+        display_mosiac_mode0_9_9
+        display_mosiac_mode0_15_15
+        display_mosiac_mode0_0_15
+        display_mosiac_mode0_15_0
+        display_mosiac_mode0_4_4_scroll
+        display_mosiac_mode2_0
+        display_mosiac_mode2_1_1
+        display_mosiac_mode2_4_4
+        display_mosiac_mode2_9_9
+        display_mosiac_mode2_15_15
+        display_mosiac_mode2_0_15
+        display_mosiac_mode2_15_0
+        display_mosiac_mode2_1_1_rotscale
+        display_mosiac_mode2_4_4_rotscale
+        display_mosiac_mode2_9_9_rotscale
+        display_mosiac_mode2_15_15_rotscale
+        display_mosiac_mode2_0_15_rotscale
+        display_mosiac_mode2_15_0_rotscale
+        display_mosiac_mode3_0
+        display_mosiac_mode3_1_1
+        display_mosiac_mode3_15_15
+        display_mosiac_mode3_0_15
+        display_mosiac_mode3_15_0
+        display_mosiac_mode4_0
+        display_mosiac_mode4_1_1
+        display_mosiac_mode4_15_15
+        display_mosiac_mode4_0_15
+        display_mosiac_mode4_15_0
+        display_mosiac_mode5_0
+        display_mosiac_mode5_1_1
+        display_mosiac_mode5_15_15
+        display_mosiac_mode5_0_15
+        display_mosiac_mode5_15_0
     )
 
     foreach(TEST ${TESTS})
