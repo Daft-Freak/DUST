@@ -620,3 +620,122 @@ void display_mosiac_objects_affine_0_15() {
 void display_mosiac_objects_affine_15_0() {
    mosaic_objects(object::mode::affine, 16, 1);
 }
+
+void display_mosaic_window() {
+    // load sprites, but don't bother with the palette
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+
+    reg::mosaic::emplace(mosaic_size {
+        .background = {6,  9}
+    });
+
+    // enable ALL the windows
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_background_0 = true,
+        .layer_background_1 = true,
+        .layer_background_2 = true,
+        .layer_background_3 = true,
+        .layer_object = true,
+        .window_0 = true,
+        .window_1 = true,
+        .window_object = true
+    });
+
+    reg::win0h::write({
+        .end = 140,
+        .begin = 10,
+    });
+
+    reg::win0v::write({
+        .end = 100,
+        .begin = 10,
+    });
+
+    reg::win1h::write({
+        .end = 240 - 20,
+        .begin = 15,
+    });
+
+    reg::win1v::write({
+        .end = 160 - 20,
+        .begin = 30,
+    });
+
+    reg::winin::write({
+        .win0_bg3 = true,
+        .win1_bg2 = true,
+    });
+
+    reg::winout::write({
+        .win0_bg0 = true,
+
+        // this is the obj window
+        .win1_bg1 = true,
+    });
+
+    palette_ram[0] = 0x4210;
+
+    object_regular obj {
+        {.y = 5, .gfx_mode = object::gfx_mode::windowed},
+        {.x = 100, .size = 3},
+        {.tile_index = 20}
+    };
+
+    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+
+    // setup_layers();
+    reg::bg0cnt::write(background_control {
+        .mosaic = true,
+        .screen_base_block = 2,
+    });
+
+    reg::bg1cnt::write(background_control {
+        .mosaic = true,
+        .screen_base_block = 3,
+    });
+
+    reg::bg2cnt::write(background_control {
+        .screen_base_block = 4,
+    });
+
+    reg::bg3cnt::write(background_control {
+        .mosaic = true,
+        .screen_base_block = 5,
+    });
+
+    palette_ram[1] = 0x03F0;
+    palette_ram[2] = 0x001F;
+    palette_ram[3] = 0x7C10;
+    palette_ram[4] = 0x7FE0;
+    palette_ram[5] = 0x0010;
+    palette_ram[6] = 0x0308;
+    palette_ram[7] = 0x4200;
+    palette_ram[8] = 0x4008;
+
+    // fill each block with a digit
+    agbabi::wordset4(video_ram + 0x0800, 0x800, 0x00100010);
+    agbabi::wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
+    agbabi::wordset4(video_ram + 0x1000, 0x800, 0x00120012);
+    agbabi::wordset4(video_ram + 0x1400, 0x800, 0x00130013);
+
+    // adjust font colours
+    // 0/1 -> 1/2, 3/4, 5/6, 7/8
+    for(int i = 0; i < 4; i++) {
+        for(int y = 0; y < 8; y++) {
+            video_ram[(i + 16) * 16 + y * 2 + 0] += 0x11111111 * (i * 2 + 1);
+            video_ram[(i + 16) * 16 + y * 2 + 1] += 0x11111111 * (i * 2 + 1);
+        }
+    }
+
+    reg::bg0hofs::write(0);
+    reg::bg0vofs::write(0);
+    reg::bg1hofs::write(0);
+    reg::bg1vofs::write(0);
+    reg::bg2hofs::write(0);
+    reg::bg2vofs::write(0);
+    reg::bg3hofs::write(0);
+    reg::bg3vofs::write(0);
+
+    wait_for_exit();
+}

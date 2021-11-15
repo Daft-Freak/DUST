@@ -148,3 +148,4 @@ void display_mosiac_objects_affine_9_9();
 void display_mosiac_objects_affine_15_15();
 void display_mosiac_objects_affine_0_15();
 void display_mosiac_objects_affine_15_0();
+void display_mosaic_window();

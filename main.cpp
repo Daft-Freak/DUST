@@ -189,6 +189,7 @@ static const std::array display_mosaic_tests {
     test_info {"Display/Mosaic obj aff 15x15", display_mosiac_objects_affine_15_15},
     test_info {"Display/Mosaic obj aff 0x15", display_mosiac_objects_affine_0_15},
     test_info {"Display/Mosaic obj aff 15x0", display_mosiac_objects_affine_15_0},
+    test_info {"Display/Mosaic window", display_mosaic_window},
 };
 
 static void init_display() {

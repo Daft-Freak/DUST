@@ -180,6 +180,7 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_mosiac_objects_affine_15_15
         display_mosiac_objects_affine_0_15
         display_mosiac_objects_affine_15_0
+        display_mosaic_window
     )
 
     foreach(TEST ${TESTS})
