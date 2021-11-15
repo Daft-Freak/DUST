@@ -168,6 +168,18 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_mosiac_mode5_15_15
         display_mosiac_mode5_0_15
         display_mosiac_mode5_15_0
+        display_mosiac_objects_regular_1_1
+        display_mosiac_objects_regular_4_4
+        display_mosiac_objects_regular_9_9
+        display_mosiac_objects_regular_15_15
+        display_mosiac_objects_regular_0_15
+        display_mosiac_objects_regular_15_0
+        display_mosiac_objects_affine_1_1
+        display_mosiac_objects_affine_4_4
+        display_mosiac_objects_affine_9_9
+        display_mosiac_objects_affine_15_15
+        display_mosiac_objects_affine_0_15
+        display_mosiac_objects_affine_15_0
     )
 
     foreach(TEST ${TESTS})

@@ -177,6 +177,18 @@ static const std::array display_mosaic_tests {
     test_info {"Display/Mosaic mode 5 15x15", display_mosiac_mode5_15_15},
     test_info {"Display/Mosaic mode 5 0x15", display_mosiac_mode5_0_15},
     test_info {"Display/Mosaic mode 5 15x0", display_mosiac_mode5_15_0},
+    test_info {"Display/Mosaic obj reg 1x1", display_mosiac_objects_regular_1_1},
+    test_info {"Display/Mosaic obj reg 4x4", display_mosiac_objects_regular_4_4},
+    test_info {"Display/Mosaic obj reg 9x9", display_mosiac_objects_regular_9_9},
+    test_info {"Display/Mosaic obj reg 15x15", display_mosiac_objects_regular_15_15},
+    test_info {"Display/Mosaic obj reg 0x15", display_mosiac_objects_regular_0_15},
+    test_info {"Display/Mosaic obj reg 15x0", display_mosiac_objects_regular_15_0},
+    test_info {"Display/Mosaic obj aff 1x1", display_mosiac_objects_affine_1_1},
+    test_info {"Display/Mosaic obj aff 4x4", display_mosiac_objects_affine_4_4},
+    test_info {"Display/Mosaic obj aff 9x9", display_mosiac_objects_affine_9_9},
+    test_info {"Display/Mosaic obj aff 15x15", display_mosiac_objects_affine_15_15},
+    test_info {"Display/Mosaic obj aff 0x15", display_mosiac_objects_affine_0_15},
+    test_info {"Display/Mosaic obj aff 15x0", display_mosiac_objects_affine_15_0},
 };
 
 static void init_display() {

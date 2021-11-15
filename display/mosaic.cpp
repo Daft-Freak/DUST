@@ -339,3 +339,284 @@ void display_mosiac_mode5_0_15() {
 void display_mosiac_mode5_15_0() {
    mosaic_mode5(16, 1);
 }
+
+static const int oam_addr = 0x07000000;
+
+static void set_object(int index, object::attr0 attr0, object::attr1_regular attr1, object::attr2 attr2) {
+    object_regular object {attr0, attr1, attr2};
+    agbabi::memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(object)), &object, sizeof(object));
+}
+
+static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) {
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_object = true,
+    });
+
+    reg::mosaic::emplace(mosaic_size {
+        .object = {size_x,  size_y}
+    });
+
+    // modified a bit from object tests setup_objects
+    const int spacing = 9;
+    uint16_t x = spacing, y = spacing;
+
+    // size 0
+
+    // 8x8
+    set_object(0, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::square
+    }, object::attr1_regular {
+        .x = x,
+        .size = 0
+    }, object::attr2 {
+        .tile_index = 0,
+    });
+    y += 8 + spacing;
+
+    // 16x8
+    set_object(1, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::wide
+    }, object::attr1_regular {
+        .x = x,
+        .size = 0
+    }, object::attr2 {
+        .tile_index = 1,
+    });
+
+    y += 8 + spacing;
+
+    // 8x16
+    set_object(2, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::tall
+    }, object::attr1_regular {
+        .x = x,
+        .size = 0
+    }, object::attr2 {
+        .tile_index = 32,
+    });
+
+    y = spacing;
+    x += 16 + spacing;
+
+    // size 1
+
+    // 16x16
+    set_object(3, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::square
+    }, object::attr1_regular {
+        .x = x,
+        .size = 1
+    }, object::attr2 {
+        .tile_index = 3,
+    });
+
+    y += 16 + spacing;
+
+    // 32x8
+    set_object(4, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::wide
+    }, object::attr1_regular {
+        .x = x,
+        .size = 1
+    }, object::attr2 {
+        .tile_index = 5,
+    });
+
+    y += 8 + spacing;
+
+    // 8x32
+    set_object(5, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::tall
+    }, object::attr1_regular {
+        .x = x,
+        .size = 1
+    }, object::attr2 {
+        .tile_index = 9,
+    });
+
+    x += 32 + spacing;
+    y = spacing;
+
+    // size 2
+
+    // 32x32
+    set_object(6, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::square
+    }, object::attr1_regular {
+        .x = x,
+        .size = 2
+    }, object::attr2 {
+        .tile_index = 10,
+    });
+
+    y += 32 + spacing;
+
+    // 32x16
+    set_object(7, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::wide
+    }, object::attr1_regular {
+        .x = x,
+        .size = 2
+    }, object::attr2 {
+        .tile_index = 14,
+    });
+
+    y += 16 + spacing;
+
+    // 16x32
+    set_object(8, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::tall
+    }, object::attr1_regular {
+        .x = x,
+        .size = 2
+    }, object::attr2 {
+        .tile_index = 18,
+    });
+
+    x += 32 + spacing;
+    y = spacing;
+
+    // size 3
+
+    // 64x64
+    set_object(9, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::square
+    }, object::attr1_regular {
+        .x = x,
+        .size = 3
+    }, object::attr2 {
+        .tile_index = 20,
+    });
+
+    y += 64 + spacing;
+
+    // 64x32
+    set_object(10, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::wide
+    }, object::attr1_regular {
+        .x = x,
+        .size = 3
+    }, object::attr2 {
+        .tile_index = 140,
+    });
+
+    // new column, no space left
+    y = spacing;
+    x += 64 + spacing;
+
+    // 32x64
+    set_object(11, object::attr0 {
+        .y = y,
+        .object_mode = mode,
+        .mosaic = true,
+        .shape = object::shape::tall
+    }, object::attr1_regular {
+        .x = x,
+        .size = 3
+    }, object::attr2 {
+        .tile_index = 28,
+    });
+
+    // hide everything else off-screen
+    for(int i = 12; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+
+    // just the one transform for now
+    static const bios::obj_affine_input input {
+        .scale_x = 1.1f,
+        .scale_y = 1.1f,
+        .rotation = 0x20
+    };
+
+    bios::obj_affine_set(&input, reinterpret_cast<object::mat2 *>(oam_addr + 6), 1, 8);
+
+    wait_for_exit();
+}
+
+void display_mosiac_objects_regular_1_1() {
+   mosaic_objects(object::mode::regular, 2, 2);
+}
+
+void display_mosiac_objects_regular_4_4() {
+   mosaic_objects(object::mode::regular, 5, 5);
+}
+
+void display_mosiac_objects_regular_9_9() {
+   mosaic_objects(object::mode::regular, 10, 10);
+}
+
+void display_mosiac_objects_regular_15_15() {
+   mosaic_objects(object::mode::regular, 16, 16);
+}
+
+void display_mosiac_objects_regular_0_15() {
+   mosaic_objects(object::mode::regular, 1, 16);
+}
+
+void display_mosiac_objects_regular_15_0() {
+   mosaic_objects(object::mode::regular, 16, 1);
+}
+
+void display_mosiac_objects_affine_1_1() {
+   mosaic_objects(object::mode::affine, 2, 2);
+}
+
+void display_mosiac_objects_affine_4_4() {
+   mosaic_objects(object::mode::affine, 5, 5);
+}
+
+void display_mosiac_objects_affine_9_9() {
+   mosaic_objects(object::mode::affine, 10, 10);
+}
+
+void display_mosiac_objects_affine_15_15() {
+   mosaic_objects(object::mode::affine, 16, 16);
+}
+
+void display_mosiac_objects_affine_0_15() {
+   mosaic_objects(object::mode::affine, 1, 16);
+}
+
+void display_mosiac_objects_affine_15_0() {
+   mosaic_objects(object::mode::affine, 16, 1);
+}
