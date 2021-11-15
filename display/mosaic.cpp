@@ -50,36 +50,36 @@ static void mosaic_mode0(uint32_t size_x, uint32_t size_y, int x = 0, int y = 0)
     wait_for_exit();
 }
 
-void display_mosiac_mode0_0() {
+void display_mosaic_mode0_0() {
    mosaic_mode0(1, 1);
 }
 
-void display_mosiac_mode0_1_1() {
+void display_mosaic_mode0_1_1() {
    mosaic_mode0(2, 2);
 }
 
-void display_mosiac_mode0_4_4() {
+void display_mosaic_mode0_4_4() {
    mosaic_mode0(5, 5);
 }
 
-void display_mosiac_mode0_9_9() {
+void display_mosaic_mode0_9_9() {
    mosaic_mode0(10, 10);
 }
 
-void display_mosiac_mode0_15_15() {
+void display_mosaic_mode0_15_15() {
    mosaic_mode0(16, 16);
 }
 
-void display_mosiac_mode0_0_15() {
+void display_mosaic_mode0_0_15() {
    mosaic_mode0(1, 16);
 }
 
-void display_mosiac_mode0_15_0() {
+void display_mosaic_mode0_15_0() {
    mosaic_mode0(16, 1);
 }
 
 // scroll it a little
-void display_mosiac_mode0_4_4_scroll() {
+void display_mosaic_mode0_4_4_scroll() {
    mosaic_mode0(5, 5, 1, 2);
 }
 
@@ -127,56 +127,56 @@ static void mosaic_mode2(uint32_t size_x, uint32_t size_y, bool transform = fals
     wait_for_exit();
 }
 
-void display_mosiac_mode2_0() {
+void display_mosaic_mode2_0() {
    mosaic_mode2(1, 1);
 }
 
-void display_mosiac_mode2_1_1() {
+void display_mosaic_mode2_1_1() {
    mosaic_mode2(2, 2);
 }
 
-void display_mosiac_mode2_4_4() {
+void display_mosaic_mode2_4_4() {
    mosaic_mode2(5, 5);
 }
 
-void display_mosiac_mode2_9_9() {
+void display_mosaic_mode2_9_9() {
    mosaic_mode2(10, 10);
 }
 
-void display_mosiac_mode2_15_15() {
+void display_mosaic_mode2_15_15() {
    mosaic_mode2(16, 16);
 }
 
-void display_mosiac_mode2_0_15() {
+void display_mosaic_mode2_0_15() {
    mosaic_mode2(1, 16);
 }
 
-void display_mosiac_mode2_15_0() {
+void display_mosaic_mode2_15_0() {
    mosaic_mode2(16, 1);
 }
 
 // repeat, but transformed
-void display_mosiac_mode2_1_1_rotscale() {
+void display_mosaic_mode2_1_1_rotscale() {
    mosaic_mode2(2, 2, true);
 }
 
-void display_mosiac_mode2_4_4_rotscale() {
+void display_mosaic_mode2_4_4_rotscale() {
    mosaic_mode2(5, 5, true);
 }
 
-void display_mosiac_mode2_9_9_rotscale() {
+void display_mosaic_mode2_9_9_rotscale() {
    mosaic_mode2(10, 10, true);
 }
 
-void display_mosiac_mode2_15_15_rotscale() {
+void display_mosaic_mode2_15_15_rotscale() {
    mosaic_mode2(16, 16, true);
 }
 
-void display_mosiac_mode2_0_15_rotscale() {
+void display_mosaic_mode2_0_15_rotscale() {
    mosaic_mode2(1, 16, true);
 }
 
-void display_mosiac_mode2_15_0_rotscale() {
+void display_mosaic_mode2_15_0_rotscale() {
    mosaic_mode2(16, 1, true);
 }
 
@@ -211,23 +211,23 @@ static void mosaic_mode3(uint32_t size_x, uint32_t size_y) {
     wait_for_exit();
 }
 
-void display_mosiac_mode3_0() {
+void display_mosaic_mode3_0() {
    mosaic_mode3(1, 1);
 }
 
-void display_mosiac_mode3_1_1() {
+void display_mosaic_mode3_1_1() {
    mosaic_mode3(2, 2);
 }
 
-void display_mosiac_mode3_15_15() {
+void display_mosaic_mode3_15_15() {
    mosaic_mode3(16, 16);
 }
 
-void display_mosiac_mode3_0_15() {
+void display_mosaic_mode3_0_15() {
    mosaic_mode3(1, 16);
 }
 
-void display_mosiac_mode3_15_0() {
+void display_mosaic_mode3_15_0() {
    mosaic_mode3(16, 1);
 }
 
@@ -270,23 +270,23 @@ static void mosaic_mode4(uint32_t size_x, uint32_t size_y) {
     wait_for_exit();
 }
 
-void display_mosiac_mode4_0() {
+void display_mosaic_mode4_0() {
    mosaic_mode4(1, 1);
 }
 
-void display_mosiac_mode4_1_1() {
+void display_mosaic_mode4_1_1() {
    mosaic_mode4(2, 2);
 }
 
-void display_mosiac_mode4_15_15() {
+void display_mosaic_mode4_15_15() {
    mosaic_mode4(16, 16);
 }
 
-void display_mosiac_mode4_0_15() {
+void display_mosaic_mode4_0_15() {
    mosaic_mode4(1, 16);
 }
 
-void display_mosiac_mode4_15_0() {
+void display_mosaic_mode4_15_0() {
    mosaic_mode4(16, 1);
 }
 
@@ -320,23 +320,23 @@ static void mosaic_mode5(uint32_t size_x, uint32_t size_y) {
     wait_for_exit();
 }
 
-void display_mosiac_mode5_0() {
+void display_mosaic_mode5_0() {
    mosaic_mode5(1, 1);
 }
 
-void display_mosiac_mode5_1_1() {
+void display_mosaic_mode5_1_1() {
    mosaic_mode5(2, 2);
 }
 
-void display_mosiac_mode5_15_15() {
+void display_mosaic_mode5_15_15() {
    mosaic_mode5(16, 16);
 }
 
-void display_mosiac_mode5_0_15() {
+void display_mosaic_mode5_0_15() {
    mosaic_mode5(1, 16);
 }
 
-void display_mosiac_mode5_15_0() {
+void display_mosaic_mode5_15_0() {
    mosaic_mode5(16, 1);
 }
 
@@ -573,51 +573,51 @@ static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) 
     wait_for_exit();
 }
 
-void display_mosiac_objects_regular_1_1() {
+void display_mosaic_objects_regular_1_1() {
    mosaic_objects(object::mode::regular, 2, 2);
 }
 
-void display_mosiac_objects_regular_4_4() {
+void display_mosaic_objects_regular_4_4() {
    mosaic_objects(object::mode::regular, 5, 5);
 }
 
-void display_mosiac_objects_regular_9_9() {
+void display_mosaic_objects_regular_9_9() {
    mosaic_objects(object::mode::regular, 10, 10);
 }
 
-void display_mosiac_objects_regular_15_15() {
+void display_mosaic_objects_regular_15_15() {
    mosaic_objects(object::mode::regular, 16, 16);
 }
 
-void display_mosiac_objects_regular_0_15() {
+void display_mosaic_objects_regular_0_15() {
    mosaic_objects(object::mode::regular, 1, 16);
 }
 
-void display_mosiac_objects_regular_15_0() {
+void display_mosaic_objects_regular_15_0() {
    mosaic_objects(object::mode::regular, 16, 1);
 }
 
-void display_mosiac_objects_affine_1_1() {
+void display_mosaic_objects_affine_1_1() {
    mosaic_objects(object::mode::affine, 2, 2);
 }
 
-void display_mosiac_objects_affine_4_4() {
+void display_mosaic_objects_affine_4_4() {
    mosaic_objects(object::mode::affine, 5, 5);
 }
 
-void display_mosiac_objects_affine_9_9() {
+void display_mosaic_objects_affine_9_9() {
    mosaic_objects(object::mode::affine, 10, 10);
 }
 
-void display_mosiac_objects_affine_15_15() {
+void display_mosaic_objects_affine_15_15() {
    mosaic_objects(object::mode::affine, 16, 16);
 }
 
-void display_mosiac_objects_affine_0_15() {
+void display_mosaic_objects_affine_0_15() {
    mosaic_objects(object::mode::affine, 1, 16);
 }
 
-void display_mosiac_objects_affine_15_0() {
+void display_mosaic_objects_affine_15_0() {
    mosaic_objects(object::mode::affine, 16, 1);
 }
 
