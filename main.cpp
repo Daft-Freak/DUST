@@ -36,6 +36,8 @@ static void display_object_test_list();
 static void display_window_test_list();
 static void display_mosaic_test_list();
 
+static void dma_test_list();
+
 static const std::array tests {
     test_info {"Display/No layers" , display_layer_none},
     test_info {"Display/CGB mode" , display_cgb_mode},
@@ -47,6 +49,8 @@ static const std::array tests {
     test_info {"Display/Objects            >", display_object_test_list},
     test_info {"Display/Window             >", display_window_test_list},
     test_info {"Display/Mosaic             >", display_mosaic_test_list},
+
+    test_info {"DMA                        >", dma_test_list},
 };
 
 static const std::array display_layer0_tests {
@@ -192,6 +196,12 @@ static const std::array display_mosaic_tests {
     test_info {"Display/Mosaic window", display_mosaic_window},
 };
 
+static const std::array dma_tests {
+    test_info {"DMA/Delay", dma_delay},
+    test_info {"DMA/Priority", dma_priority},
+    test_info {"DMA/Priority Reverse", dma_priority_reverse},
+};
+
 static void init_display() {
     reg::dispcnt::write({
         .mode = 0,
@@ -274,6 +284,10 @@ static void display_window_test_list() {
 
 static void display_mosaic_test_list() {
     test_list(display_mosaic_tests);
+}
+
+static void dma_test_list() {
+    test_list(dma_tests);
 }
 
 int main(int argc, char * argv[]) {

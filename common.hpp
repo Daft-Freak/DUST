@@ -149,3 +149,7 @@ void display_mosaic_objects_affine_15_15();
 void display_mosaic_objects_affine_0_15();
 void display_mosaic_objects_affine_15_0();
 void display_mosaic_window();
+
+void dma_delay();
+void dma_priority();
+void dma_priority_reverse();
