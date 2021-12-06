@@ -71,21 +71,17 @@ void dma_priority() {
         dma_dest[i + 64] = i + 64;
     }
 
-    const uint32_t timer = 0x800000; // enable
     const uint32_t dma = 0x80000010; // enable, 16 transfers
 
     // start timer then DMA
     asm volatile(
         "str %1, [%0]\n"
-        "str %3, [%2]\n"
-        "str %3, [%4]\n"
-        "str %3, [%5]\n"
-        "str %3, [%6]\n"
+        "str %1, [%2]\n"
+        "str %1, [%3]\n"
+        "str %1, [%4]\n"
         :
-        : "r" (reg::tm0d_cnt::address), "r" (timer), "r" (reg::dma0cnt::address), "r" (dma), "r" (reg::dma1cnt::address), "r" (reg::dma2cnt::address), "r" (reg::dma3cnt::address)
+        : "r" (reg::dma0cnt::address), "r" (dma), "r" (reg::dma1cnt::address), "r" (reg::dma2cnt::address), "r" (reg::dma3cnt::address)
     );
-
-    reg::tm0d_cnt::write({});
 
     char buf[30];
 
@@ -104,7 +100,6 @@ void dma_priority() {
 
     wait_for_exit();
 }
-
 
 [[gnu::section(".iwram")]]
 void dma_priority_reverse() {
@@ -131,21 +126,18 @@ void dma_priority_reverse() {
         dma_dest[i + 64] = i + 64;
     }
 
-    const uint32_t timer = 0x800000; // enable
     const uint32_t dma = 0x80000010; // enable, 16 transfers
 
-    // start timer then DMA
+    // start DMA
     asm volatile(
-        "str %1, [%0]\n"
-        "str %3, [%2]\n"
-        "str %3, [%4]\n"
-        "str %3, [%5]\n"
-        "str %3, [%6]\n"
-        :
-        : "r" (reg::tm0d_cnt::address), "r" (timer), "r" (reg::dma3cnt::address), "r" (dma), "r" (reg::dma2cnt::address), "r" (reg::dma1cnt::address), "r" (reg::dma0cnt::address)
-    );
 
-    reg::tm0d_cnt::write({});
+        "str %1, [%0]\n"
+        "str %1, [%2]\n"
+        "str %1, [%3]\n"
+        "str %1, [%4]\n"
+        :
+        : "r" (reg::dma3cnt::address), "r" (dma), "r" (reg::dma2cnt::address), "r" (reg::dma1cnt::address), "r" (reg::dma0cnt::address)
+    );
 
     char buf[30];
 
