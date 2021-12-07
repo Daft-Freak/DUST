@@ -186,6 +186,7 @@ if(BUILD_SINGLE_TEST_ROMS)
         dma_delay
         dma_priority
         dma_priority_reverse
+        dma_priority_hblank
     )
 
     foreach(TEST ${TESTS})

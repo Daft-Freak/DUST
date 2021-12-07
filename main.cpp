@@ -199,7 +199,8 @@ static const std::array display_mosaic_tests {
 static const std::array dma_tests {
     test_info {"DMA/Delay", dma_delay},
     test_info {"DMA/Priority", dma_priority},
-    test_info {"DMA/Priority Reverse", dma_priority_reverse},
+    test_info {"DMA/Priority reverse", dma_priority_reverse},
+    test_info {"DMA/Priority hblank", dma_priority_hblank},
 };
 
 static void init_display() {

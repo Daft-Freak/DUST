@@ -156,3 +156,54 @@ void dma_priority_reverse() {
 
     wait_for_exit();
 }
+
+[[gnu::section(".iwram")]]
+void dma_priority_hblank() {
+    // tries to start a dma in the middle of another one
+
+    // high priority
+    reg::dma0sad::write(uintptr_t(dma_dest + 0 * 16));
+    reg::dma0dad::write(uintptr_t(dma_dest + 1 * 16));
+    reg::dma0cnt_l::write(8);
+
+    // low priority
+    reg::dma3sad::write(0x8000000); // from ROM
+    reg::dma3dad::write(uintptr_t(dma_dest + 5 * 16));
+    reg::dma3cnt_l::write(300);
+
+    agbabi::wordset4(dma_dest, sizeof(dma_dest), 0);
+
+    for(int i = 0; i < 16; i++)
+        dma_dest[i] = i + 1;
+
+    const uint16_t dma0 = 0xA000; // enable, hblank
+    const uint16_t dma3 = 0x8040; // enable, dest fixed
+
+    // start of first line
+    while(reg::vcount::read() != 0);
+
+    // start DMAs
+    asm volatile(
+        "strh %2, [%0]\n"
+        "strh %3, [%1]\n"
+        :
+        : "r" (reg::dma0cnt_h::address), "r" (reg::dma3cnt_h::address), "r" (dma0), "r" (dma3)
+    );
+
+    char buf[30];
+
+    clear_text();
+
+    for(int i = 0; i < 4; i++) {
+
+        int off = i * 16;
+
+        snprintf(buf, sizeof(buf), "%2x %2x %2x %2x %2x %2x %2x %2x %2x %2x",
+                dma_dest[off + 0], dma_dest[off + 1], dma_dest[off + 2], dma_dest[off + 3], dma_dest[off + 4],
+                dma_dest[off + 5], dma_dest[off + 6], dma_dest[off + 7], dma_dest[off + 8], dma_dest[off + 9]);
+
+        write_text(0, i * 2 + 1, buf);
+    }
+
+    wait_for_exit();
+}
