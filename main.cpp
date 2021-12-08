@@ -35,6 +35,7 @@ static void display_layer2_test_list();
 static void display_object_test_list();
 static void display_window_test_list();
 static void display_mosaic_test_list();
+static void display_blend_test_list();
 
 static void dma_test_list();
 
@@ -49,6 +50,7 @@ static const std::array tests {
     test_info {"Display/Objects            >", display_object_test_list},
     test_info {"Display/Window             >", display_window_test_list},
     test_info {"Display/Mosaic             >", display_mosaic_test_list},
+    test_info {"Display/Blend              >", display_blend_test_list},
 
     test_info {"DMA                        >", dma_test_list},
 };
@@ -196,6 +198,23 @@ static const std::array display_mosaic_tests {
     test_info {"Display/Mosaic window", display_mosaic_window},
 };
 
+static const std::array display_blend_tests {
+    test_info {"Display/Blend mode 0", display_blend_mode0},
+    test_info {"Display/Blend mode 1", display_blend_mode1},
+    test_info {"Display/Blend m1 all", display_blend_mode1_all},
+    test_info {"Display/Blend m1 add",display_blend_mode1_add},
+    test_info {"Display/Blend m1 rev", display_blend_mode1_reversed},
+    test_info {"Display/Blend m1 no second", display_blend_mode1_no_second},
+    test_info {"Display/Blend m1 between", display_blend_mode1_between},
+    test_info {"Display/Blend m1 objects", display_blend_mode1_objects},
+    test_info {"Display/Blend mode 2", display_blend_mode2},
+    test_info {"Display/Blend m2 backdrop", display_blend_mode2_backdrop},
+    test_info {"Display/Blend mode 3", display_blend_mode3},
+    test_info {"Display/Blend m3 backdrop", display_blend_mode3_backdrop},
+    test_info {"Display/Blend window", display_blend_window},
+    test_info {"Display/Blend obj trans", display_blend_object_trans},
+};
+
 static const std::array dma_tests {
     test_info {"DMA/Delay", dma_delay},
     test_info {"DMA/Priority", dma_priority},
@@ -218,6 +237,8 @@ static void init_display() {
 
     reg::bg0hofs::write(0);
     reg::bg0vofs::write(0);
+
+    reg::bldcnt::write({});
 
     load_font();
 }
@@ -287,6 +308,9 @@ static void display_mosaic_test_list() {
     test_list(display_mosaic_tests);
 }
 
+static void display_blend_test_list() {
+    test_list(display_blend_tests);
+}
 static void dma_test_list() {
     test_list(dma_tests);
 }

@@ -13,6 +13,7 @@ set(ROM_MAKER_CODE "DF")
 set(ROM_VERSION 100)
 
 set(SOURCES
+    display/blend.cpp
     display/display.cpp
     display/layer0.cpp
     display/layer2.cpp
@@ -182,6 +183,20 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_mosaic_objects_affine_0_15
         display_mosaic_objects_affine_15_0
         display_mosaic_window
+        display_blend_mode0
+        display_blend_mode1
+        display_blend_mode1_all
+        display_blend_mode1_add
+        display_blend_mode1_reversed
+        display_blend_mode1_no_second
+        display_blend_mode1_between
+        display_blend_mode1_objects
+        display_blend_mode2
+        display_blend_mode2_backdrop
+        display_blend_mode3
+        display_blend_mode3_backdrop
+        display_blend_window
+        display_blend_object_trans
 
         dma_delay
         dma_priority
