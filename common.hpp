@@ -70,6 +70,8 @@ void display_obj_regular_8bpp_1d();
 void display_obj_wrap_x();
 void display_obj_wrap_y();
 void display_obj_wrap_y_bug();
+void display_obj_priority();
+void display_obj_priority_bug();
 void display_obj_bmp_char_base();
 void display_obj_line_limit_regular_size0();
 void display_obj_line_limit_regular_size1();

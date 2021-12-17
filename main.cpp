@@ -111,6 +111,8 @@ static const std::array display_object_tests {
     test_info {"Display/Objects wrap x", display_obj_wrap_x},
     test_info {"Display/Objects wrap y", display_obj_wrap_y},
     test_info {"Display/Objects wrap y bug", display_obj_wrap_y_bug},
+    test_info {"Display/Objects priority", display_obj_priority},
+    test_info {"Display/Objects priority bug", display_obj_priority_bug},
     test_info {"Display/Objects bmp char base", display_obj_bmp_char_base},
     test_info {"Display/Objects limit reg s0", display_obj_line_limit_regular_size0},
     test_info {"Display/Objects limit reg s1", display_obj_line_limit_regular_size1},
@@ -311,6 +313,7 @@ static void display_mosaic_test_list() {
 static void display_blend_test_list() {
     test_list(display_blend_tests);
 }
+
 static void dma_test_list() {
     test_list(dma_tests);
 }

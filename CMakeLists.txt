@@ -104,6 +104,8 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_obj_wrap_x
         display_obj_wrap_y
         display_obj_wrap_y_bug
+        display_obj_priority
+        display_obj_priority_bug
         display_obj_bmp_char_base
         display_obj_line_limit_regular_size0
         display_obj_line_limit_regular_size1

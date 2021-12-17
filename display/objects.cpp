@@ -775,7 +775,6 @@ void display_obj_regular_8bpp_1d() {
     wait_for_exit();
 }
 
-
 void display_obj_wrap_x() {
     palette_ram[0] = 0x4210;
 
@@ -1069,6 +1068,144 @@ void display_obj_wrap_y_bug() {
 
     // 2x scale
     set_affine_params(0, 0x80, 0, 0, 0x80);
+
+    wait_for_exit();
+}
+
+void display_obj_priority() {
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_object = true,
+    });
+
+    // both priority 0, obj 0 should be on top of obj 1
+
+    // 8x8
+    set_object(0, object::attr0 {
+        .y = 12,
+    }, object::attr1_regular {
+        .x = 12,
+    }, object::attr2 {
+        .tile_index = 0
+    });
+
+    // 16x16
+    set_object(1, object::attr0 {
+        .y = 8,
+    }, object::attr1_regular {
+        .x = 8,
+        .size = 1
+    }, object::attr2 {
+        .tile_index = 3
+    });
+
+    // obj 2 should be on top of obj 3, but it has a lower priority so it isn't
+
+    // 64x64
+    set_object(2, object::attr0 {
+        .y = 8,
+    }, object::attr1_regular {
+        .x = 32,
+        .size = 3
+    }, object::attr2 {
+        .tile_index = 20,
+        .priority = 1
+    });
+
+    // 32x32
+    set_object(3, object::attr0 {
+        .y = 24,
+    }, object::attr1_regular {
+        .x = 48,
+        .size = 2
+    }, object::attr2 {
+        .tile_index = 10
+    });
+
+    // hide everything else off-screen
+    for(int i = 4; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+
+    wait_for_exit();
+}
+
+void display_obj_priority_bug() {
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        .layer_background_0 = true,
+        .layer_object = true,
+    });
+
+    // add layer at priority 0
+    reg::bg0cnt::write(background_control {
+        .screen_base_block = 2
+    });
+    
+    agbabi::wordset4(video_ram + 0x0800, 0x800, 0);
+    agbabi::wordset4(video_ram, 64, 0x11111111);
+
+    palette_ram[1] = 0x4210;
+
+    // both priority 0, obj 0 should be on top of obj 1
+
+    // 8x8
+    set_object(0, object::attr0 {
+        .y = 12,
+    }, object::attr1_regular {
+        .x = 12,
+    }, object::attr2 {
+        .tile_index = 0
+    });
+
+    // 16x16
+    set_object(1, object::attr0 {
+        .y = 8,
+    }, object::attr1_regular {
+        .x = 8,
+        .size = 1
+    }, object::attr2 {
+        .tile_index = 3
+    });
+
+    // obj 2 should be on top of obj 3, but it has a lower priority so it isn't
+    // ... and as there's a layer in the middle there's a bug
+
+    // 64x64
+    set_object(2, object::attr0 {
+        .y = 8,
+    }, object::attr1_regular {
+        .x = 32,
+        .size = 3
+    }, object::attr2 {
+        .tile_index = 20,
+        .priority = 1
+    });
+
+    // 32x32
+    set_object(3, object::attr0 {
+        .y = 24,
+    }, object::attr1_regular {
+        .x = 48,
+        .size = 2
+    }, object::attr2 {
+        .tile_index = 10
+    });
+
+    // hide everything else off-screen
+    for(int i = 4; i < 128; i++)
+        set_object(i, {.y = 160}, object::attr1_regular {}, {});
 
     wait_for_exit();
 }
