@@ -621,3 +621,128 @@ void display_blend_object_trans() {
 
     wait_for_exit();
 }
+
+void display_blend_object_trans_enable() {
+    // semi-transparent object overrides blend mode, enabling it
+
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        
+        .layer_background_1 = true,
+        .layer_object = true,
+    });
+
+    reg::bldcnt::write(blend_control {
+        .src_bg1 = true,
+        .src_obj = true,
+        .mode = blend_mode::off,
+        .dst_bg1 = true, // used for sprite transparency
+    });
+
+    reg::bldalpha::write({
+        .eva = 0.5f,
+        .evb = 0.5f,
+    });
+
+    reg::bldy::write(0.75f);
+
+    // sprites
+    object_regular obj {
+        {.y = 32},
+        {.x = 32, .size = 2},
+        {.tile_index = 10}
+    };
+
+    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+
+    // blended
+    obj.attr0.gfx_mode = object::gfx_mode::blending;
+    obj.attr1.x += 40;
+    agbabi::memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+
+    // hide the rest
+    obj.attr0.y = 160;
+    for(int i = 2; i < 128; i++)
+        agbabi::memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
+
+    palette_ram[0] = 0x4210;
+
+    setup_layers();
+
+    wait_for_exit();
+}
+
+void display_blend_object_trans_priority() {
+    // load sprites
+    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+
+    reg::dispcnt::write({
+        .mode = 0,
+        
+        .layer_background_1 = true,
+        .layer_object = true,
+    });
+
+    reg::bldcnt::write(blend_control {
+        .src_bg1 = true,
+        .src_obj = true,
+        .mode = blend_mode::black,
+        .dst_bg1 = true, // used for sprite transparency
+    });
+
+    reg::bldalpha::write({
+        .eva = 0.5f,
+        .evb = 0.5f,
+    });
+
+    reg::bldy::write(0.75f);
+
+    // sprites
+    object_regular obj {
+        {.y = 32},
+        {.x = 32, .size = 2},
+        {.tile_index = 10}
+    };
+
+    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+
+
+    // blended (partially covered)
+    obj.attr0.gfx_mode = object::gfx_mode::blending;
+    obj.attr1.x += 16;
+    agbabi::memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+
+    // and again with different priorities
+    obj.attr0.y += 40;
+    obj.attr2.priority = 1;
+
+    agbabi::memcpy2(reinterpret_cast<void*>(0x7000018), &obj, sizeof(obj));
+
+    obj.attr0.gfx_mode = object::gfx_mode::normal;
+    obj.attr1.x -= 16;
+    obj.attr2.priority = 0;
+
+    agbabi::memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
+
+    // hide the rest
+    obj.attr0.y = 160;
+    for(int i = 4; i < 128; i++)
+        agbabi::memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
+
+    palette_ram[0] = 0x4210;
+
+    setup_layers();
+
+    // adjust layer priority
+    reg::bg1cnt::write(background_control {
+        .priority = 1,
+        .screen_base_block = 3
+    });
+
+    wait_for_exit();
+}

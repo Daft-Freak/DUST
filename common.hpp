@@ -165,6 +165,8 @@ void display_blend_mode3();
 void display_blend_mode3_backdrop();
 void display_blend_window();
 void display_blend_object_trans();
+void display_blend_object_trans_enable();
+void display_blend_object_trans_priority();
 
 void dma_delay();
 void dma_priority();

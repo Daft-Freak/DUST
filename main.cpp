@@ -215,6 +215,8 @@ static const std::array display_blend_tests {
     test_info {"Display/Blend m3 backdrop", display_blend_mode3_backdrop},
     test_info {"Display/Blend window", display_blend_window},
     test_info {"Display/Blend obj trans", display_blend_object_trans},
+    test_info {"Display/Blend obj trans en", display_blend_object_trans_enable},
+    test_info {"Display/Blend obj trans prio", display_blend_object_trans_priority},
 };
 
 static const std::array dma_tests {

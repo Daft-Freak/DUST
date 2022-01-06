@@ -199,6 +199,8 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_blend_mode3_backdrop
         display_blend_window
         display_blend_object_trans
+        display_blend_object_trans_enable
+        display_blend_object_trans_priority
 
         dma_delay
         dma_priority
