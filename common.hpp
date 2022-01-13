@@ -172,3 +172,5 @@ void dma_delay();
 void dma_priority();
 void dma_priority_reverse();
 void dma_priority_hblank();
+void dma_timer();
+void dma_timer_multi();

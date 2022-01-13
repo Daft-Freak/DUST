@@ -224,6 +224,8 @@ static const std::array dma_tests {
     test_info {"DMA/Priority", dma_priority},
     test_info {"DMA/Priority reverse", dma_priority_reverse},
     test_info {"DMA/Priority hblank", dma_priority_hblank},
+    test_info {"DMA/Timer", dma_timer},
+    test_info {"DMA/Timer multi", dma_timer_multi},
 };
 
 static void init_display() {

@@ -10,40 +10,61 @@ static uint16_t dma_dest[5 * 16 + 8];
 // run from IWRAM for 1 cycle timing
 [[gnu::section(".iwram")]]
 void dma_delay() {
-    reg::dma3sad::write(reg::tm0d::address);
-    reg::dma3dad::write(uintptr_t(dma_dest));
 
-    /*reg::tm0d_cnt::write({
-        .control = {
-            .enable = true
-        }
-    });
-    reg::dma3cnt::write({
-        .transfers = 1,
-        .control = {
-            .enable = true
-        }
-    });*/
+    reg::dma0sad::write(uintptr_t(dma_dest + 0 * 16));
+    reg::dma0dad::write(uintptr_t(dma_dest + 1 * 16));
+    reg::dma0cnt_l::write(8);
 
-    const uint32_t timer = 0x800000; // enable
-    const uint32_t dma = 0x80000001; // enable, 1 transfer
+    agbabi::wordset4(dma_dest, sizeof(dma_dest), 0);
 
-    // start timer then DMA
+    const uint16_t dma0 = 0x8000; // enable
+
+    int i = 0x00AA0055;
+    auto p = dma_dest;
+
+    // start DMA, then do some stores
     asm volatile(
-        "str %1, [%0]\n"
-        "str %3, [%2]\n"
-        :
-        : "r" (reg::tm0d_cnt::address), "r" (timer), "r" (reg::dma3cnt::address), "r" (dma)
+        "strh %[dmaval], [%[dmacnt]]\n"
+        "stmia %[dest]!, {%[val]}\n"
+        "stmia %[dest]!, {%[val]}\n"
+        "stmia %[dest]!, {%[val]}\n"
+        "stmia %[dest]!, {%[val]}\n"
+        : [dest] "+r" (p)
+        : [dmacnt] "l" (reg::dma0cnt_h::address), [dmaval] "r" (dma0),  [val] "r" (i)
     );
 
-    reg::tm0d_cnt::write({});
+    // and again with an extra nop
+    reg::dma0sad::write(uintptr_t(dma_dest + 2 * 16));
+    reg::dma0dad::write(uintptr_t(dma_dest + 3 * 16));
+    reg::dma0cnt_l::write(8);
 
-    char buf[10];
+    p = dma_dest + 2 * 16;
+
+    asm volatile(
+        "strh %[dmaval], [%[dmacnt]]\n"
+        "nop\n"
+        "stmia %[dest]!, {%[val]}\n"
+        "stmia %[dest]!, {%[val]}\n"
+        "stmia %[dest]!, {%[val]}\n"
+        "stmia %[dest]!, {%[val]}\n"
+        : [dest] "+r" (p)
+        : [dmacnt] "l" (reg::dma0cnt_h::address), [dmaval] "r" (dma0),  [val] "r" (i)
+    );
+
+    char buf[30];
 
     clear_text();
-    snprintf(buf, sizeof(buf), "%i", dma_dest[0]);
 
-    write_text(1, 1, buf);
+    for(int i = 0; i < 4; i++) {
+
+        int off = i * 16;
+
+        snprintf(buf, sizeof(buf), "%2x %2x %2x %2x %2x %2x %2x %2x %2x %2x",
+                dma_dest[off + 0], dma_dest[off + 1], dma_dest[off + 2], dma_dest[off + 3], dma_dest[off + 4],
+                dma_dest[off + 5], dma_dest[off + 6], dma_dest[off + 7], dma_dest[off + 8], dma_dest[off + 9]);
+
+        write_text(0, i * 2 + 1, buf);
+    }
 
     wait_for_exit();
 }
@@ -204,6 +225,84 @@ void dma_priority_hblank() {
 
         write_text(0, i * 2 + 1, buf);
     }
+
+    wait_for_exit();
+}
+
+[[gnu::section(".iwram")]]
+void dma_timer() {
+    // use DMA to read a timer repeatedly... which seems like a silly thing to do
+    reg::dma3sad::write(reg::tm0d::address);
+    reg::dma3dad::write(uintptr_t(dma_dest));
+
+    /*reg::tm0d_cnt::write({
+        .control = {
+            .enable = true
+        }
+    });
+    reg::dma3cnt::write(gba::dma_transfer_control {
+        .transfers = 4,
+        .control = {
+            .source_control = dma_control::source_address::fixed,
+            .enable = true
+        }
+    });*/
+
+    const uint32_t timer = 0x800000; // enable
+    const uint32_t dma = 0x81000004; // enable, fixed src, 4 transfers
+
+    // start timer then DMA
+    asm volatile(
+        "str %1, [%0]\n"
+        "str %3, [%2]\n"
+        :
+        : "r" (reg::tm0d_cnt::address), "r" (timer), "r" (reg::dma3cnt::address), "r" (dma)
+    );
+
+    reg::tm0d_cnt::write({});
+
+    char buf[10];
+
+    clear_text();
+
+    snprintf(buf, sizeof(buf), "%2i %2i %2i %2i", dma_dest[0], dma_dest[1], dma_dest[2], dma_dest[3]);
+    write_text(1, 1, buf);
+
+    wait_for_exit();
+}
+
+[[gnu::section(".iwram")]]
+void dma_timer_multi() {
+    // use two DMA channels to read a timer repeatedly... which is an even sillier thing to do
+
+    reg::dma3sad::write(reg::tm0d::address);
+    reg::dma3dad::write(uintptr_t(dma_dest));
+    reg::dma2sad::write(reg::tm0d::address);
+    reg::dma2dad::write(uintptr_t(dma_dest + 8));
+
+    const uint32_t timer = 0x800000; // enable
+    const uint32_t dma = 0x81000004; // enable, fixed src, 4 transfers
+
+    // start timer then DMAs
+    asm volatile(
+        "str %1, [%0]\n"
+        "str %4, [%2]\n"
+        "str %4, [%3]\n"
+        :
+        : "r" (reg::tm0d_cnt::address), "r" (timer), "r" (reg::dma3cnt::address), "r" (reg::dma2cnt::address), "r" (dma)
+    );
+
+    reg::tm0d_cnt::write({});
+
+    char buf[20];
+
+    clear_text();
+
+    snprintf(buf, sizeof(buf), "%2i %2i %2i %2i", dma_dest[0], dma_dest[1], dma_dest[2], dma_dest[3]);
+    write_text(1, 1, buf);
+
+    snprintf(buf, sizeof(buf), "%2i %2i %2i %2i", dma_dest[8], dma_dest[9], dma_dest[10], dma_dest[11]);
+    write_text(1, 2, buf);
 
     wait_for_exit();
 }
