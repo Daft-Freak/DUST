@@ -7,21 +7,21 @@
 using namespace gba;
 
 static void setup_layers() {
-    reg::bg0cnt::write(background_control {
-        .screen_base_block = 2,
-    });
+    mmio::BG0CNT = {
+        .screenblock = 2,
+    };
 
-    reg::bg1cnt::write(background_control {
-        .screen_base_block = 3,
-    });
+    mmio::BG1CNT = {
+        .screenblock = 3,
+    };
 
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 4,
-    });
+    mmio::BG2CNT = {
+        .screenblock = 4,
+    };
 
-    reg::bg3cnt::write(background_control {
-        .screen_base_block = 5,
-    });
+    mmio::BG3CNT = {
+        .screenblock = 5,
+    };
 
     palette_ram[1] = 0x03F0;
     palette_ram[2] = 0x001F;
@@ -33,10 +33,10 @@ static void setup_layers() {
     palette_ram[8] = 0x4008;
 
     // fill each block with a digit
-    agbabi::wordset4(video_ram + 0x0800, 0x800, 0x00100010);
-    agbabi::wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
-    agbabi::wordset4(video_ram + 0x1000, 0x800, 0x00120012);
-    agbabi::wordset4(video_ram + 0x1400, 0x800, 0x00130013);
+    __agbabi_wordset4(video_ram + 0x0800, 0x800, 0x00100010);
+    __agbabi_wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
+    __agbabi_wordset4(video_ram + 0x1000, 0x800, 0x00120012);
+    __agbabi_wordset4(video_ram + 0x1400, 0x800, 0x00130013);
 
     // adjust font colours
     // 0/1 -> 1/2, 3/4, 5/6, 7/8
@@ -47,42 +47,36 @@ static void setup_layers() {
         }
     }
 
-    reg::bg0hofs::write(0);
-    reg::bg0vofs::write(0);
-    reg::bg1hofs::write(0);
-    reg::bg1vofs::write(0);
-    reg::bg2hofs::write(0);
-    reg::bg2vofs::write(0);
-    reg::bg3hofs::write(0);
-    reg::bg3vofs::write(0);
+    mmio::BG0HOFS = 0;
+    mmio::BG0HOFS = 0;
+    mmio::BG1HOFS = 0;
+    mmio::BG1HOFS = 0;
+    mmio::BG2HOFS = 0;
+    mmio::BG2HOFS = 0;
+    mmio::BG3HOFS = 0;
+    mmio::BG3HOFS = 0;
 }
 
 void display_window_win0_bg() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_2 = true,
-        .window_0 = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg2 = true,
+        .enable_win0 = true
+    };
 
-    reg::win0h::write({
-        .end = 240 - 20,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{240 - 20 - 1, 10};
 
-    reg::win0v::write({
-        .end = 160 - 20,
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{160 - 20 - 1, 10};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg1 = true, // this layer isn't enabled
         .win0_bg2 = true
-    });
+    };
 
-    reg::winout::write({
-        .win0_bg3 = true // neither is this one, so outside should be the backdrop
-    });
+    mmio::WINOUT = {
+        .outside_bg3 = true // neither is this one, so outside should be the backdrop
+    };
 
     palette_ram[0] = 0x4210;
 
@@ -93,31 +87,25 @@ void display_window_win0_bg() {
 
 void display_window_win1_bg() {
     // same thing, but win1
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_2 = true,
-        .window_1 = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg2 = true,
+        .enable_win1 = true
+    };
 
-    reg::win1h::write({
-        .end = 240 - 20,
-        .begin = 10,
-    });
+    mmio::WIN1H = u8x2{240 - 20 - 1, 10};
 
-    reg::win1v::write({
-        .end = 160 - 20,
-        .begin = 10,
-    });
+    mmio::WIN1V = u8x2{160 - 20 - 1, 10};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win1_bg1 = true,
         .win1_bg2 = true
-    });
+    };
 
-    reg::winout::write({
-        .win0_bg3 = true
-    });
+    mmio::WINOUT = {
+        .outside_bg3 = true
+    };
 
     palette_ram[0] = 0x4210;
 
@@ -128,34 +116,33 @@ void display_window_win1_bg() {
 
 void display_window_obj_win_bg() {
     // load sprites, but don't bother with the palette
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
 
     // same thing, but object window
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_2 = true,
-        .layer_object = true,
-        .window_object = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg2 = true,
+        .show_obj = true,
+        .enable_obj_win = true
+    };
 
-    reg::winout::write({
-        .win0_bg3 = true,
+    mmio::WINOUT = {
+        .outside_bg3 = true,
 
-        // this is the obj window
-        .win1_bg1 = true,
-        .win1_bg2 = true
-    });
+        .obj_win_bg1 = true,
+        .obj_win_bg2 = true
+    };
 
     palette_ram[0] = 0x4210;
 
-    object_regular obj {
-        {.y = 5, .gfx_mode = object::gfx_mode::windowed},
+    objattr obj {
+        {.y = 5, .mode = obj_effect::window},
         {.x = 100, .size = 3},
-        {.tile_index = 20}
+        {.tile_id = 20}
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     setup_layers();
 
@@ -164,63 +151,52 @@ void display_window_obj_win_bg() {
 
 void display_window_priority() {
     // load sprites, but don't bother with the palette
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
 
     // enable ALL the windows
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-        .window_object = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+        .enable_obj_win = true
+    };
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{140 - 1, 10};
 
-    reg::win0v::write({
-        .end = 100,
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{100 - 1, 10};
 
-    reg::win1h::write({
-        .end = 240 - 20,
-        .begin = 15,
-    });
+    mmio::WIN1H = u8x2{240 - 20 - 1, 15};
 
-    reg::win1v::write({
-        .end = 160 - 20,
-        .begin = 30,
-    });
+    mmio::WIN1V = u8x2{160 - 20 - 1, 30};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg3 = true,
-        .win1_bg2 = true,
-    });
 
-    reg::winout::write({
-        .win0_bg0 = true,
+        .win1_bg2 = true,
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
 
         // this is the obj window
-        .win1_bg1 = true,
-        .win1_obj = true // no objects here except the one making the window, so this does nothing
-    });
+        .obj_win_bg1 = true,
+        .obj_win_obj = true // no objects here except the one making the window, so this does nothing
+    };
 
     palette_ram[0] = 0x4210;
 
-    object_regular obj {
-        {.y = 5, .gfx_mode = object::gfx_mode::windowed},
+    objattr obj {
+        {.y = 5, .mode = obj_effect::window},
         {.x = 100, .size = 3},
-        {.tile_index = 20}
+        {.tile_id = 20}
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     setup_layers();
 
@@ -229,130 +205,115 @@ void display_window_priority() {
 
 void display_window_objects() {
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
     // enable ALL the windows
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-        .window_object = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+        .enable_obj_win = true
+    };
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{140 - 1, 10};
 
-    reg::win0v::write({
-        .end = 100,
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{100 - 1, 10};
 
-    reg::win1h::write({
-        .end = 240 - 20,
-        .begin = 15,
-    });
+    mmio::WIN1H = u8x2{240 - 20 - 1, 15};
 
-    reg::win1v::write({
-        .end = 160 - 20,
-        .begin = 30,
-    });
+    mmio::WIN1V = u8x2{160 - 20 - 1, 30};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg3 = true,
         .win0_obj = true,
 
         .win1_bg2 = true,
-    });
+    };
 
-    reg::winout::write({
-        .win0_bg0 = true,
+    mmio::WINOUT = {
+        .outside_bg0 = true,
 
         // this is the obj window
-        .win1_bg1 = true,
-        .win1_obj = true
-    });
+        .obj_win_bg1 = true,
+        .obj_win_obj = true
+    };
+
 
     palette_ram[0] = 0x4210;
 
     // setup sprite for window
-    object_regular obj {
-        {.y = 5, .gfx_mode = object::gfx_mode::windowed},
+    objattr obj {
+        {.y = 5, .mode = obj_effect::window},
         {.x = 100, .size = 3},
-        {.tile_index = 20}
+        {.tile_id = 20}
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     // ... and some regular sprites
-    obj.attr0.gfx_mode = object::gfx_mode::normal;
-    obj.attr0.y += 10;
-    obj.attr1.x -= 10;
+    obj.mode = obj_effect::normal;
+    obj.y += 10;
+    obj.x -= 10;
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
 
-    obj.attr0.y = 50;
-    obj.attr1.x = 0;
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
+    obj.y = 50;
+    obj.x = 0;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
 
     setup_layers();
 
     wait_for_exit();
 }
 
+static const int bg2pa_addr = 0x4000020;
+
 // affine verion
 void display_window_win0_bg_affine() {
-    reg::dispcnt::write({
-        .mode = 1,
-        .layer_background_0 = true,
-        .layer_background_2 = true,
-        .window_0 = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 1,
+        .show_bg0 = true,
+        .show_bg2 = true,
+        .enable_win0 = true
+    };
 
-    reg::win0h::write({
-        .end = 240 - 20,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{240 - 20 - 1, 10};
 
-    reg::win0v::write({
-        .end = 160 - 20,
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{160 - 20 - 1, 10};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg1 = true, // this layer isn't enabled
         .win0_bg2 = true
-    });
+    };
 
-    reg::winout::write({
-        .win0_bg0 = true
-    });
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
     setup_layers();
 
     // transform affine bg
-    static const bios::bg_affine_input input {
-        .origin_x = 64,
-        .origin_y = 64,
-        .display_x = 120,
-        .display_y = 80,
-        .scale_x = 0.5f,
-        .scale_y = 0.5f,
-        .rotation = 0x20 // 1/8
+    static const bios::bg_affine_src input {
+        .tex_x = 64,
+        .tex_y = 64,
+        .scr_x = 120,
+        .scr_y = 80,
+        .sx = 0.5f,
+        .sy = 0.5f,
+        .alpha = 0x2000 // 1/8
     };
 
-    auto output = reinterpret_cast<bios::bg_affine_output *>(reg::bg2pa::address);
+    auto output = reinterpret_cast<bios::bg_affine_dest *>(bg2pa_addr);
 
-    bios::bg_affine_set(&input, output, 1);
+    bios::BgAffineSet(&input, output, 1);
 
     // gen affine tiles
     gen_affine_tiles(video_ram, video_ram + 0x1000, 16);
@@ -360,8 +321,8 @@ void display_window_win0_bg_affine() {
     wait_for_exit();
 }
 
-static void window_hblank_irq_handler(interrupt_mask mask) {
-    auto vcount = reg::vcount::read() + 1;
+static void window_hblank_irq_handler(int mask) {
+    auto vcount = *mmio::VCOUNT + 1;
 
     if(vcount > 160)
         return;
@@ -370,339 +331,317 @@ static void window_hblank_irq_handler(interrupt_mask mask) {
         vcount = 0;
 
     if(vcount < 80) {
-        reg::win0h::write(window_dimension {
-            .end = uint8_t(121 + vcount),
-            .begin = uint8_t(120 - vcount),
-        });
+        mmio::WIN0H = u8x2{uint8_t(120 + vcount), uint8_t(120 - vcount)};
     } else {
-        reg::win0h::write(window_dimension {
-            .end = uint8_t(279 - vcount),
-            .begin = uint8_t(vcount - 40),
-        });
+        mmio::WIN0H = u8x2{uint8_t(278 - vcount), uint8_t(vcount - 40)};
     }
 }
 
 void display_window_hblank_irq() {
     // changing window x start/end in a hblank irq
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+    };
 
-    reg::win0h::write({
-        .end = 120,
-        .begin = 120,
-    });
+    mmio::WIN0H = u8x2{120 - 1, 120};
 
-    reg::win0v::write({
-        .end = 150,
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{150 - 1, 10};
 
-    reg::winin::write({
-        .win0_bg3 = true,
-    });
+    mmio::WININ = {
+        .win0_bg3 = true
+    };
 
-    reg::winout::write({
-        .win0_bg0 = true,
-    });
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
     setup_layers();
 
     // setup irq
-    agbabi::interrupt_handler::set(window_hblank_irq_handler);
+    mmio::IRQ_HANDLER = agbabi::irq_user(window_hblank_irq_handler);
 
-    reg::dispstat::write({
-        .vblank_irq = true,
-        .hblank_irq = true
-    });
+    mmio::DISPSTAT = {
+        .irq_vblank = true,
+        .irq_hblank = true
+    };
 
-    reg::ie::write({
+    mmio::IE = {
         .vblank = true,
         .hblank = true,
-    });
+    };
 
     wait_for_exit();
 
-    agbabi::interrupt_handler::set(nullptr);
+    mmio::IRQ_HANDLER = agbabi::irq_empty;
 
-    reg::dispstat::write({
-        .vblank_irq = true
-    });
+    mmio::DISPSTAT = {
+        .irq_vblank = true
+    };
 }
 
 // a hexagon
-static const window_dimension hex_win_dims[160] {
-    {144, 134},
-    {145, 130},
-    {146, 127},
-    {147, 123},
-    {148, 119},
-    {149, 116},
-    {150, 112},
-    {151, 108},
-    {152, 104},
-    {153, 101},
-    {154, 97},
-    {155, 93},
-    {156, 89},
-    {157, 86},
-    {158, 82},
-    {159, 78},
-    {160, 75},
-    {161, 71},
-    {162, 67},
-    {163, 63},
+static const u8x2 hex_win_dims[160] {
+    {143, 134},
+    {144, 130},
+    {145, 127},
+    {146, 123},
+    {147, 119},
+    {148, 116},
+    {149, 112},
+    {150, 108},
+    {151, 104},
+    {152, 101},
+    {153, 97},
+    {154, 93},
+    {155, 89},
+    {156, 86},
+    {157, 82},
+    {158, 78},
+    {159, 75},
+    {160, 71},
+    {161, 67},
+    {162, 63},
+    {163, 61},
     {164, 61},
-    {165, 61},
+    {165, 60},
     {166, 60},
     {167, 60},
     {168, 60},
-    {169, 60},
+    {169, 59},
     {170, 59},
     {171, 59},
     {172, 59},
-    {173, 59},
+    {173, 58},
     {174, 58},
     {175, 58},
-    {176, 58},
+    {176, 57},
     {177, 57},
     {178, 57},
     {179, 57},
-    {180, 57},
+    {180, 56},
     {181, 56},
     {182, 56},
     {183, 56},
-    {184, 56},
+    {184, 55},
     {185, 55},
     {186, 55},
     {187, 55},
-    {188, 55},
+    {188, 54},
     {189, 54},
     {190, 54},
-    {191, 54},
+    {191, 53},
     {192, 53},
     {193, 53},
     {194, 53},
-    {195, 53},
+    {195, 52},
     {196, 52},
     {197, 52},
     {198, 52},
-    {199, 52},
+    {199, 51},
     {200, 51},
-    {201, 51},
-    {201, 51},
     {200, 51},
-    {200, 50},
-    {200, 50},
-    {200, 50},
-    {199, 49},
-    {199, 49},
-    {199, 49},
+    {199, 51},
+    {199, 50},
+    {199, 50},
+    {199, 50},
     {198, 49},
-    {198, 48},
-    {198, 48},
-    {198, 48},
+    {198, 49},
+    {198, 49},
+    {197, 49},
     {197, 48},
-    {197, 47},
-    {197, 47},
-    {197, 47},
-    {196, 46},
-    {196, 46},
-    {196, 46},
+    {197, 48},
+    {197, 48},
+    {196, 48},
+    {196, 47},
+    {196, 47},
+    {196, 47},
     {195, 46},
-    {195, 45},
-    {195, 45},
-    {195, 45},
+    {195, 46},
+    {195, 46},
+    {194, 46},
     {194, 45},
-    {194, 44},
-    {194, 44},
-    {194, 44},
+    {194, 45},
+    {194, 45},
+    {193, 45},
     {193, 44},
-    {193, 43},
-    {193, 43},
-    {193, 43},
-    {192, 42},
-    {192, 42},
-    {192, 42},
+    {193, 44},
+    {193, 44},
+    {192, 44},
+    {192, 43},
+    {192, 43},
+    {192, 43},
     {191, 42},
-    {191, 41},
-    {191, 41},
-    {191, 41},
+    {191, 42},
+    {191, 42},
+    {190, 42},
     {190, 41},
-    {190, 40},
-    {190, 40},
-    {190, 40},
-    {189, 40},
+    {190, 41},
+    {190, 41},
     {189, 41},
-    {189, 42},
-    {189, 43},
-    {188, 44},
-    {188, 45},
-    {188, 46},
-    {187, 47},
-    {187, 48},
-    {187, 49},
-    {187, 50},
-    {186, 51},
-    {186, 52},
-    {186, 53},
-    {186, 54},
-    {185, 55},
-    {185, 56},
-    {185, 57},
-    {184, 58},
-    {184, 59},
-    {184, 60},
-    {184, 61},
-    {183, 62},
-    {183, 63},
-    {183, 64},
-    {183, 65},
-    {182, 66},
-    {182, 67},
-    {182, 68},
-    {182, 69},
-    {181, 70},
-    {181, 71},
-    {181, 72},
-    {180, 73},
-    {180, 74},
-    {180, 75},
-    {180, 76},
-    {179, 77},
-    {175, 78},
-    {172, 79},
-    {168, 80},
-    {164, 81},
-    {161, 82},
-    {157, 83},
-    {153, 84},
-    {149, 85},
-    {146, 86},
-    {142, 87},
-    {138, 88},
-    {134, 89},
-    {131, 90},
-    {127, 91},
-    {123, 92},
-    {119, 93},
-    {116, 94},
-    {112, 95},
-    {108, 96},
-    {105, 97},
-    {101, 98},
-    {143, 138}, // first
+    {189, 40},
+    {189, 40},
+    {189, 40},
+    {188, 40},
+    {188, 41},
+    {188, 42},
+    {188, 43},
+    {187, 44},
+    {187, 45},
+    {187, 46},
+    {186, 47},
+    {186, 48},
+    {186, 49},
+    {186, 50},
+    {185, 51},
+    {185, 52},
+    {185, 53},
+    {185, 54},
+    {184, 55},
+    {184, 56},
+    {184, 57},
+    {183, 58},
+    {183, 59},
+    {183, 60},
+    {183, 61},
+    {182, 62},
+    {182, 63},
+    {182, 64},
+    {182, 65},
+    {181, 66},
+    {181, 67},
+    {181, 68},
+    {181, 69},
+    {180, 70},
+    {180, 71},
+    {180, 72},
+    {179, 73},
+    {179, 74},
+    {179, 75},
+    {179, 76},
+    {178, 77},
+    {174, 78},
+    {171, 79},
+    {167, 80},
+    {163, 81},
+    {160, 82},
+    {156, 83},
+    {152, 84},
+    {148, 85},
+    {145, 86},
+    {141, 87},
+    {137, 88},
+    {133, 89},
+    {130, 90},
+    {126, 91},
+    {122, 92},
+    {118, 93},
+    {115, 94},
+    {111, 95},
+    {107, 96},
+    {104, 97},
+    {100, 98},
+    {142, 138}, // first
 };
 
-static void window_vblank_irq_handler(interrupt_mask mask) {
-    reg::dma3cnt_h::write({});
+static void window_vblank_irq_handler(int mask) {
+    mmio::DMA3_CONTROL.reset();
 
-    reg::dma3sad::write(reinterpret_cast<uint32_t>(hex_win_dims));
+    mmio::DMA3_SRC = hex_win_dims;
 
-    reg::dma3cnt_h::write(dma_control {
-        .destination_control = dma_control::destination_address::fixed,
-        .source_control = dma_control::source_address::increment,
+    mmio::DMA3_CONTROL = dmacnt_h {
+        .dest_control = dest_addr::fixed,
+        .src_control = src_addr::increment,
         .repeat = true,
-        .type = dma_control::type::half,
-        .start_condition = dma_control::start::next_hblank,
-        .enable = true
-    });
+        .start_time = start::hblank,
+        .enabled = true
+    };
 }
+
+static const int win0h_addr = 0x4000040;
 
 void display_window_hblank_dma() {
     // changing window x start/end in a hblank dma
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+    };
 
-    reg::win0h::write({
-        .end = 120,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{120 - 1, 10};
 
-    reg::win0v::write({
-        .end = 161,
-        .begin = 0,
-    });
+    mmio::WIN0V = u8x2{161 - 1, 0};
 
-    reg::winin::write({
-        .win0_bg3 = true,
-    });
+    mmio::WININ = {
+        .win0_bg3 = true
+    };
 
-    reg::winout::write({
-        .win0_bg0 = true,
-    });
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
     setup_layers();
 
-    reg::dma3dad::write(reg::win0h::address);
-    reg::dma3cnt_l::write(1);
+    mmio::DMA3_DEST = reinterpret_cast<void *>(win0h_addr);
+    mmio::DMA3_COUNT = 1;
 
     // need to reset every frame
-    agbabi::interrupt_handler::set(window_vblank_irq_handler);
+    mmio::IRQ_HANDLER = agbabi::irq_user(window_vblank_irq_handler);
 
     wait_for_exit();
 
-    agbabi::interrupt_handler::set(nullptr);
-    reg::dma3cnt_h::write({});
+    mmio::IRQ_HANDLER = agbabi::irq_empty;
+    mmio::DMA3_CONTROL.reset();
 }
 
 void display_window_invalid_x1() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+    };
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 150, // start > end
-    });
+    mmio::WIN0H = u8x2{
+        140 - 1,
+        150, // start > end
+    };
 
-    reg::win0v::write({
-        .end = 100,
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{100 - 1, 10};
 
-    reg::win1h::write({
-        .end = 220,
-        .begin = 222, // start > end
-    });
+    mmio::WIN1H = u8x2{
+        220 - 1,
+        222, // start > end
+    };
 
-    reg::win1v::write({
-        .end = 160 - 20,
-        .begin = 30,
-    });
+    mmio::WIN1V = u8x2{160 - 20 - 1, 30};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg3 = true,
-        .win1_bg2 = true,
-    });
 
-    reg::winout::write({
-        .win0_bg0 = true,
-    });
+        .win1_bg2 = true
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
@@ -712,45 +651,40 @@ void display_window_invalid_x1() {
 }
 
 void display_window_invalid_x2() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+    };
 
-    reg::win0h::write({
-        .end = 245, // > 240
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{
+        245 - 1, // > 240
+        10,
+    };
 
-    reg::win0v::write({
-        .end = 100,
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{100 - 1, 10};
 
-    reg::win1h::write({
-        .end = 250, // > 240
-        .begin = 15,
-    });
+    mmio::WIN1H = u8x2{
+        250 - 1, // > 240
+        15,
+    };
 
-    reg::win1v::write({
-        .end = 160 - 20,
-        .begin = 30,
-    });
+    mmio::WIN1V = u8x2{160 - 20 - 1, 30};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg3 = true,
-        .win1_bg2 = true,
-    });
 
-    reg::winout::write({
-        .win0_bg0 = true,
-    });
+        .win1_bg2 = true
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
@@ -760,45 +694,41 @@ void display_window_invalid_x2() {
 }
 
 void display_window_invalid_y1() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+    };
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 10, 
-    });
+    mmio::WIN0H = u8x2{140 - 1, 10};
 
-    reg::win0v::write({
-        .end = 100,
-        .begin = 120, // start > end
-    });
+    mmio::WIN0V = u8x2{
+        100 - 1,
+        120, // start > end
+    };
 
-    reg::win1h::write({
-        .end = 220,
-        .begin = 15,
-    });
+    mmio::WIN1H = u8x2{220 - 1, 15};
 
-    reg::win1v::write({
-        .end = 120,
-        .begin = 150,  // start > end
-    });
+    mmio::WIN1V = u8x2{
+        120 - 1,
+        150,  // start > end
+    };
 
-    reg::winin::write({
+
+    mmio::WININ = {
         .win0_bg3 = true,
-        .win1_bg2 = true,
-    });
 
-    reg::winout::write({
-        .win0_bg0 = true,
-    });
+        .win1_bg2 = true
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
@@ -808,45 +738,37 @@ void display_window_invalid_y1() {
 }
 
 void display_window_invalid_y2() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+    };
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{140 - 1, 10};
 
-    reg::win0v::write({
-        .end = 180, // > 160
-        .begin = 10,
-    });
+    mmio::WIN0V = u8x2{
+        180 - 1, // > 160
+        10,
+    };
 
-    reg::win1h::write({
-        .end = 220,
-        .begin = 15,
-    });
+    mmio::WIN1H = u8x2{220 - 1, 15};
 
-    reg::win1v::write({
-        .end = 220,
-        .begin = 60,
-    });
+    mmio::WIN1V = u8x2{220 - 1, 60};
 
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg3 = true,
-        .win1_bg2 = true,
-    });
 
-    reg::winout::write({
-        .win0_bg0 = true,
-    });
+        .win1_bg2 = true
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
@@ -857,32 +779,30 @@ void display_window_invalid_y2() {
 
 void display_window_invalid_y2_no_disable() {
     // sets Y2 to > 228, causing the window to never disable
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+    };
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{140 - 1, 10};
 
-    reg::win0v::write({
-        .end = 229, // past the end of vblank, never triggers disable
-        .begin = 140,
-    });
-    reg::winin::write({
-        .win0_bg3 = true,
-    });
+    mmio::WIN0V = u8x2{
+        229 - 1, // past the end of vblank, never triggers disable
+        140,
+    };
 
-    reg::winout::write({
-        .win0_bg0 = true,
-    });
+    mmio::WININ = {
+        .win0_bg3 = true
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+    };
 
     palette_ram[0] = 0x4210;
 

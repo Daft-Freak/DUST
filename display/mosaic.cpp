@@ -7,19 +7,20 @@
 using namespace gba;
 
 static void mosaic_mode0(uint32_t size_x, uint32_t size_y, int x = 0, int y = 0) {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
-    
-    reg::bg0cnt::write(background_control {
-        .mosaic = true,
-        .screen_base_block = 2,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
 
-    reg::mosaic::emplace(mosaic_size {
-        .background = {size_x,  size_y}
-    });
+    mmio::BG0CNT = {
+        .mosaic = true,
+        .screenblock = 2,
+    };
+
+    mmio::MOSAIC = {
+        .bg_h_extra = size_x - 1, // TODO: cleanup +/-1
+        .bg_v_extra = size_y - 1
+    };
 
     palette_ram[1] = 0x03F0;
     palette_ram[2] = 0x001F;
@@ -44,8 +45,8 @@ static void mosaic_mode0(uint32_t size_x, uint32_t size_y, int x = 0, int y = 0)
         }
     }
 
-    reg::bg0hofs::write(x);
-    reg::bg0vofs::write(y);
+    mmio::BG0HOFS = x;
+    mmio::BG0VOFS = y;
 
     wait_for_exit();
 }
@@ -83,45 +84,48 @@ void display_mosaic_mode0_4_4_scroll() {
    mosaic_mode0(5, 5, 1, 2);
 }
 
-static void mosaic_mode2(uint32_t size_x, uint32_t size_y, bool transform = false) {
-    reg::dispcnt::write({
-        .mode = 2,
-        .layer_background_2 = true,
-    });
-    
-    reg::bg2cnt::write(background_control {
-        .mosaic = true,
-        .screen_base_block = 2,
-    });
+static const int bg2pa_addr = 0x4000020;
 
-    reg::mosaic::emplace(mosaic_size {
-        .background = {size_x,  size_y}
-    });
+static void mosaic_mode2(uint32_t size_x, uint32_t size_y, bool transform = false) {
+    mmio::DISPCNT = {
+        .video_mode = 2,
+        .show_bg2 = true,
+    };
+
+    mmio::BG2CNT = {
+        .mosaic = true,
+        .screenblock = 2,
+    };
+
+    mmio::MOSAIC = {
+        .bg_h_extra = size_x - 1,
+        .bg_v_extra = size_y - 1
+    };
 
     gen_affine_tiles(video_ram, video_ram + 0x800, 16);
 
     if(transform) {
-        static const bios::bg_affine_input input {
-            .origin_x = 64,
-            .origin_y = 64,
-            .display_x = 120,
-            .display_y = 80,
-            .scale_x = 0.5f,
-            .scale_y = 0.5f,
-            .rotation = 0x20 // 1/8
+        static const bios::bg_affine_src input {
+            .tex_x = 64,
+            .tex_y = 64,
+            .scr_x = 120,
+            .scr_y = 80,
+            .sx = 0.5f,
+            .sy = 0.5f,
+            .alpha = 0x2000 // 1/8
         };
 
-        auto output = reinterpret_cast<bios::bg_affine_output *>(reg::bg2pa::address);
+        auto output = reinterpret_cast<bios::bg_affine_dest *>(bg2pa_addr);
 
-        bios::bg_affine_set(&input, output, 1);
+        bios::BgAffineSet(&input, output, 1);
     } else {
         // reset affine
-        reg::bg2pa::write(1);
-        reg::bg2pb::write(0);
-        reg::bg2pc::write(0);
-        reg::bg2pd::write(1);
-        reg::bg2x::write(0);
-        reg::bg2y::write(0);
+        mmio::BG2PA = 1;
+        mmio::BG2PB = 0;
+        mmio::BG2PC = 0;
+        mmio::BG2PD = 1;
+        mmio::BG2X = 0;
+        mmio::BG2Y = 0;
     }
 
     wait_for_exit();
@@ -182,25 +186,26 @@ void display_mosaic_mode2_15_0_rotscale() {
 
 // yes bitmap mosaic?
 static void mosaic_mode3(uint32_t size_x, uint32_t size_y) {
-    reg::dispcnt::write({
-        .mode = 3,
-        .layer_background_2 = true,
-    });
-    
-    reg::bg2cnt::write(background_control {
+    mmio::DISPCNT = {
+        .video_mode = 3,
+        .show_bg2 = true,
+    };
+
+    mmio::BG2CNT = {
         .mosaic = true,
-    });
+    };
 
-    reg::mosaic::emplace(mosaic_size {
-        .background = {size_x,  size_y}
-    });
+    mmio::MOSAIC = {
+        .bg_h_extra = size_x - 1,
+        .bg_v_extra = size_y - 1
+    };
 
-    reg::bg2pa::write(1);
-    reg::bg2pb::write(0);
-    reg::bg2pc::write(0);
-    reg::bg2pd::write(1);
-    reg::bg2x::write(0);
-    reg::bg2y::write(0);
+    mmio::BG2PA = 1;
+    mmio::BG2PB = 0;
+    mmio::BG2PC = 0;
+    mmio::BG2PD = 1;
+    mmio::BG2X = 0;
+    mmio::BG2Y = 0;
 
     for(int y = 0; y < 160; y++) {
         for(int x = 0; x < 240; x++) {
@@ -232,25 +237,26 @@ void display_mosaic_mode3_15_0() {
 }
 
 static void mosaic_mode4(uint32_t size_x, uint32_t size_y) {
-    reg::dispcnt::write({
-        .mode = 4,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 4,
+        .show_bg2 = true,
+    };
 
-    reg::bg2cnt::write(background_control {
+    mmio::BG2CNT = {
         .mosaic = true,
-    });
+    };
 
-    reg::mosaic::emplace(mosaic_size {
-        .background = {size_x,  size_y}
-    });
+    mmio::MOSAIC = {
+        .bg_h_extra = size_x - 1,
+        .bg_v_extra = size_y - 1
+    };
 
-    reg::bg2pa::write(1);
-    reg::bg2pb::write(0);
-    reg::bg2pc::write(0);
-    reg::bg2pd::write(1);
-    reg::bg2x::write(0);
-    reg::bg2y::write(0);
+    mmio::BG2PA = 1;
+    mmio::BG2PB = 0;
+    mmio::BG2PC = 0;
+    mmio::BG2PD = 1;
+    mmio::BG2X = 0;
+    mmio::BG2Y = 0;
 
     for(int i = 1; i < 256; i++)
         palette_ram[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
@@ -291,25 +297,26 @@ void display_mosaic_mode4_15_0() {
 }
 
 static void mosaic_mode5(uint32_t size_x, uint32_t size_y) {
-    reg::dispcnt::write({
-        .mode = 5,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 5,
+        .show_bg2 = true,
+    };
 
-    reg::bg2cnt::write(background_control {
+    mmio::BG2CNT = {
         .mosaic = true,
-    });
+    };
 
-    reg::mosaic::emplace(mosaic_size {
-        .background = {size_x,  size_y}
-    });
+    mmio::MOSAIC = {
+        .bg_h_extra = size_x - 1,
+        .bg_v_extra = size_y - 1
+    };
 
-    reg::bg2pa::write(1);
-    reg::bg2pb::write(0);
-    reg::bg2pc::write(0);
-    reg::bg2pd::write(1);
-    reg::bg2x::write(0);
-    reg::bg2y::write(0);
+    mmio::BG2PA = 1;
+    mmio::BG2PB = 0;
+    mmio::BG2PC = 0;
+    mmio::BG2PD = 1;
+    mmio::BG2X = 0;
+    mmio::BG2Y = 0;
 
     for(int y = 0; y < 128; y++) {
         for(int x = 0; x < 160; x++) {
@@ -342,26 +349,27 @@ void display_mosaic_mode5_15_0() {
 
 static const int oam_addr = 0x07000000;
 
-static void set_object(int index, object::attr0 attr0, object::attr1_regular attr1, object::attr2 attr2) {
-    object_regular object {attr0, attr1, attr2};
-    agbabi::memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(object)), &object, sizeof(object));
+static void set_object(int index, objattr0 attr0, objattr1 attr1, objattr2 attr2) {
+    objattr object {attr0, attr1, attr2};
+    __agbabi_memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(objattr8)), &object, sizeof(object));
 }
 
-static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) {
+static void mosaic_objects(obj_display mode, uint32_t size_x, uint32_t size_y) {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    reg::mosaic::emplace(mosaic_size {
-        .object = {size_x,  size_y}
-    });
+    mmio::MOSAIC = {
+        .obj_h_extra = size_x - 1,
+        .obj_v_extra = size_y - 1
+    };
 
     // modified a bit from object tests setup_objects
     const int spacing = 9;
@@ -370,45 +378,45 @@ static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) 
     // size 0
 
     // 8x8
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
         .size = 0
-    }, object::attr2 {
-        .tile_index = 0,
+    }, objattr2 {
+        .tile_id = 0,
     });
     y += 8 + spacing;
 
     // 16x8
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
         .size = 0
-    }, object::attr2 {
-        .tile_index = 1,
+    }, objattr2 {
+        .tile_id = 1,
     });
 
     y += 8 + spacing;
 
     // 8x16
-    set_object(2, object::attr0 {
+    set_object(2, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
         .size = 0
-    }, object::attr2 {
-        .tile_index = 32,
+    }, objattr2 {
+        .tile_id = 32,
     });
 
     y = spacing;
@@ -417,46 +425,46 @@ static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) 
     // size 1
 
     // 16x16
-    set_object(3, object::attr0 {
+    set_object(3, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 3,
+    }, objattr2 {
+        .tile_id = 3,
     });
 
     y += 16 + spacing;
 
     // 32x8
-    set_object(4, object::attr0 {
+    set_object(4, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 5,
+    }, objattr2 {
+        .tile_id = 5,
     });
 
     y += 8 + spacing;
 
     // 8x32
-    set_object(5, object::attr0 {
+    set_object(5, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 9,
+    }, objattr2 {
+        .tile_id = 9,
     });
 
     x += 32 + spacing;
@@ -465,46 +473,46 @@ static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) 
     // size 2
 
     // 32x32
-    set_object(6, object::attr0 {
+    set_object(6, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 10,
+    }, objattr2 {
+        .tile_id = 10,
     });
 
     y += 32 + spacing;
 
     // 32x16
-    set_object(7, object::attr0 {
+    set_object(7, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 14,
+    }, objattr2 {
+        .tile_id = 14,
     });
 
     y += 16 + spacing;
 
     // 16x32
-    set_object(8, object::attr0 {
+    set_object(8, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 18,
+    }, objattr2 {
+        .tile_id = 18,
     });
 
     x += 32 + spacing;
@@ -513,31 +521,31 @@ static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) 
     // size 3
 
     // 64x64
-    set_object(9, object::attr0 {
+    set_object(9, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20,
+    }, objattr2 {
+        .tile_id = 20,
     });
 
     y += 64 + spacing;
 
     // 64x32
-    set_object(10, object::attr0 {
+    set_object(10, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 140,
+    }, objattr2 {
+        .tile_id = 140,
     });
 
     // new column, no space left
@@ -545,164 +553,152 @@ static void mosaic_objects(object::mode mode, uint32_t size_x, uint32_t size_y) 
     x += 64 + spacing;
 
     // 32x64
-    set_object(11, object::attr0 {
+    set_object(11, objattr0 {
         .y = y,
-        .object_mode = mode,
+        .style = mode,
         .mosaic = true,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 28,
+    }, objattr2 {
+        .tile_id = 28,
     });
 
     // hide everything else off-screen
     for(int i = 12; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 
     // just the one transform for now
-    static const bios::obj_affine_input input {
-        .scale_x = 1.1f,
-        .scale_y = 1.1f,
-        .rotation = 0x20
+    static const bios::obj_affine_src input {
+        .sx = 1.099f,
+        .sy = 1.099f,
+        .alpha = 0x2000
     };
 
-    bios::obj_affine_set(&input, reinterpret_cast<object::mat2 *>(oam_addr + 6), 1, 8);
+    bios::ObjAffineSet(&input, reinterpret_cast<fixed<short, 8> *>(oam_addr + 6), 1, 8);
 
     wait_for_exit();
 }
 
 void display_mosaic_objects_regular_1_1() {
-   mosaic_objects(object::mode::regular, 2, 2);
+   mosaic_objects(obj_display::normal, 2, 2);
 }
 
 void display_mosaic_objects_regular_4_4() {
-   mosaic_objects(object::mode::regular, 5, 5);
+   mosaic_objects(obj_display::normal, 5, 5);
 }
 
 void display_mosaic_objects_regular_9_9() {
-   mosaic_objects(object::mode::regular, 10, 10);
+   mosaic_objects(obj_display::normal, 10, 10);
 }
 
 void display_mosaic_objects_regular_15_15() {
-   mosaic_objects(object::mode::regular, 16, 16);
+   mosaic_objects(obj_display::normal, 16, 16);
 }
 
 void display_mosaic_objects_regular_0_15() {
-   mosaic_objects(object::mode::regular, 1, 16);
+   mosaic_objects(obj_display::normal, 1, 16);
 }
 
 void display_mosaic_objects_regular_15_0() {
-   mosaic_objects(object::mode::regular, 16, 1);
+   mosaic_objects(obj_display::normal, 16, 1);
 }
 
 void display_mosaic_objects_affine_1_1() {
-   mosaic_objects(object::mode::affine, 2, 2);
+   mosaic_objects(obj_display::affine, 2, 2);
 }
 
 void display_mosaic_objects_affine_4_4() {
-   mosaic_objects(object::mode::affine, 5, 5);
+   mosaic_objects(obj_display::affine, 5, 5);
 }
 
 void display_mosaic_objects_affine_9_9() {
-   mosaic_objects(object::mode::affine, 10, 10);
+   mosaic_objects(obj_display::affine, 10, 10);
 }
 
 void display_mosaic_objects_affine_15_15() {
-   mosaic_objects(object::mode::affine, 16, 16);
+   mosaic_objects(obj_display::affine, 16, 16);
 }
 
 void display_mosaic_objects_affine_0_15() {
-   mosaic_objects(object::mode::affine, 1, 16);
+   mosaic_objects(obj_display::affine, 1, 16);
 }
 
 void display_mosaic_objects_affine_15_0() {
-   mosaic_objects(object::mode::affine, 16, 1);
+   mosaic_objects(obj_display::affine, 16, 1);
 }
 
 void display_mosaic_window() {
     // load sprites, but don't bother with the palette
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
 
-    reg::mosaic::emplace(mosaic_size {
-        .background = {6,  9}
-    });
+    mmio::MOSAIC = {
+        .bg_h_extra = 6 - 1,
+        .bg_v_extra = 9 - 1
+    };
 
     // enable ALL the windows
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-        .window_object = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+        .enable_obj_win = true
+    };
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{140 - 1, 10};
+    mmio::WIN0V = u8x2{100 - 1, 10};
 
-    reg::win0v::write({
-        .end = 100,
-        .begin = 10,
-    });
+    mmio::WIN1H = u8x2{240 - 20 - 1, 15};
+    mmio::WIN1V = u8x2{160 - 20 - 1, 30};
 
-    reg::win1h::write({
-        .end = 240 - 20,
-        .begin = 15,
-    });
-
-    reg::win1v::write({
-        .end = 160 - 20,
-        .begin = 30,
-    });
-
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg3 = true,
-        .win1_bg2 = true,
-    });
 
-    reg::winout::write({
-        .win0_bg0 = true,
+        .win1_bg2 = true,
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
 
         // this is the obj window
-        .win1_bg1 = true,
-    });
+        .obj_win_bg1 = true,
+    };
 
     palette_ram[0] = 0x4210;
 
-    object_regular obj {
-        {.y = 5, .gfx_mode = object::gfx_mode::windowed},
+    objattr obj {
+        {.y = 5, .mode = obj_effect::window},
         {.x = 100, .size = 3},
-        {.tile_index = 20}
+        {.tile_id = 20}
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     // setup_layers();
-    reg::bg0cnt::write(background_control {
+    mmio::BG0CNT = {
         .mosaic = true,
-        .screen_base_block = 2,
-    });
+        .screenblock = 2,
+    };
 
-    reg::bg1cnt::write(background_control {
+    mmio::BG1CNT = {
         .mosaic = true,
-        .screen_base_block = 3,
-    });
+        .screenblock = 3,
+    };
 
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 4,
-    });
+    mmio::BG2CNT = {
+        .screenblock = 4,
+    };
 
-    reg::bg3cnt::write(background_control {
+    mmio::BG3CNT = {
         .mosaic = true,
-        .screen_base_block = 5,
-    });
+        .screenblock = 5,
+    };
 
     palette_ram[1] = 0x03F0;
     palette_ram[2] = 0x001F;
@@ -714,10 +710,10 @@ void display_mosaic_window() {
     palette_ram[8] = 0x4008;
 
     // fill each block with a digit
-    agbabi::wordset4(video_ram + 0x0800, 0x800, 0x00100010);
-    agbabi::wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
-    agbabi::wordset4(video_ram + 0x1000, 0x800, 0x00120012);
-    agbabi::wordset4(video_ram + 0x1400, 0x800, 0x00130013);
+    __agbabi_wordset4(video_ram + 0x0800, 0x800, 0x00100010);
+    __agbabi_wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
+    __agbabi_wordset4(video_ram + 0x1000, 0x800, 0x00120012);
+    __agbabi_wordset4(video_ram + 0x1400, 0x800, 0x00130013);
 
     // adjust font colours
     // 0/1 -> 1/2, 3/4, 5/6, 7/8
@@ -728,14 +724,14 @@ void display_mosaic_window() {
         }
     }
 
-    reg::bg0hofs::write(0);
-    reg::bg0vofs::write(0);
-    reg::bg1hofs::write(0);
-    reg::bg1vofs::write(0);
-    reg::bg2hofs::write(0);
-    reg::bg2vofs::write(0);
-    reg::bg3hofs::write(0);
-    reg::bg3vofs::write(0);
+    mmio::BG0HOFS = 0;
+    mmio::BG0VOFS = 0;
+    mmio::BG1HOFS = 0;
+    mmio::BG1VOFS = 0;
+    mmio::BG2HOFS = 0;
+    mmio::BG2VOFS = 0;
+    mmio::BG3HOFS = 0;
+    mmio::BG3VOFS = 0;
 
     wait_for_exit();
 }

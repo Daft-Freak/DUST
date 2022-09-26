@@ -1,5 +1,5 @@
 #include <gba/gba.hpp>
-#include <gba/ext/agbabi.hpp>
+#include <gba/ext/agbabi/agbabi.hpp>
 
 #include "../common.hpp"
 
@@ -7,15 +7,31 @@ using namespace gba;
 
 static uint16_t dma_dest[5 * 16 + 8];
 
+static const int dma0cnt_addr = 0x40000B8;
+static const int dma1cnt_addr = 0x40000C4;
+static const int dma2cnt_addr = 0x40000D0;
+static const int dma3cnt_addr = 0x40000DC;
+
+static const int dma0cnt_h_addr = 0x40000BA;
+static const int dma3cnt_h_addr = 0x40000DE;
+
+static const int tm0d_addr = 0x4000100;
+
+// workaround interworking failure
+// also affects memset (and memset generated for a manual fill loop...)
+[[gnu::noinline]] static void wordset4(void *dest, size_t n, int c) {
+    __agbabi_wordset4( dest, n, c );
+}
+
 // run from IWRAM for 1 cycle timing
 [[gnu::section(".iwram")]]
 void dma_delay() {
 
-    reg::dma0sad::write(uintptr_t(dma_dest + 0 * 16));
-    reg::dma0dad::write(uintptr_t(dma_dest + 1 * 16));
-    reg::dma0cnt_l::write(8);
+    mmio::DMA0_SRC = dma_dest + 0 * 16;
+    mmio::DMA0_DEST = dma_dest + 1 * 16;
+    mmio::DMA0_COUNT = 8;
 
-    agbabi::wordset4(dma_dest, sizeof(dma_dest), 0);
+    wordset4(dma_dest, sizeof(dma_dest), 0);
 
     const uint16_t dma0 = 0x8000; // enable
 
@@ -30,13 +46,13 @@ void dma_delay() {
         "stmia %[dest]!, {%[val]}\n"
         "stmia %[dest]!, {%[val]}\n"
         : [dest] "+r" (p)
-        : [dmacnt] "l" (reg::dma0cnt_h::address), [dmaval] "r" (dma0),  [val] "r" (i)
+        : [dmacnt] "l" (dma0cnt_h_addr), [dmaval] "r" (dma0),  [val] "r" (i)
     );
 
     // and again with an extra nop
-    reg::dma0sad::write(uintptr_t(dma_dest + 2 * 16));
-    reg::dma0dad::write(uintptr_t(dma_dest + 3 * 16));
-    reg::dma0cnt_l::write(8);
+    mmio::DMA0_SRC = dma_dest + 2 * 16;
+    mmio::DMA0_DEST = dma_dest + 3 * 16;
+    mmio::DMA0_COUNT = 8;
 
     p = dma_dest + 2 * 16;
 
@@ -48,7 +64,7 @@ void dma_delay() {
         "stmia %[dest]!, {%[val]}\n"
         "stmia %[dest]!, {%[val]}\n"
         : [dest] "+r" (p)
-        : [dmacnt] "l" (reg::dma0cnt_h::address), [dmaval] "r" (dma0),  [val] "r" (i)
+        : [dmacnt] "l" (dma0cnt_h_addr), [dmaval] "r" (dma0),  [val] "r" (i)
     );
 
     char buf[30];
@@ -72,17 +88,17 @@ void dma_delay() {
 [[gnu::section(".iwram")]]
 void dma_priority() {
     // each DMA overrites part of the source data of the next DMA
-    reg::dma0sad::write(uintptr_t(dma_dest + 0 * 16));  // 0 1 2 3...
-    reg::dma0dad::write(uintptr_t(dma_dest + 1 * 16 + 4));
+    mmio::DMA0_SRC = dma_dest + 0 * 16;  // 0 1 2 3...
+    mmio::DMA0_DEST = dma_dest + 1 * 16 + 4;
 
-    reg::dma1sad::write(uintptr_t(dma_dest + 1 * 16)); // ff fe fd fc...
-    reg::dma1dad::write(uintptr_t(dma_dest + 2 * 16 + 4));
+    mmio::DMA1_SRC = dma_dest + 1 * 16; // ff fe fd fc...
+    mmio::DMA1_DEST = dma_dest + 2 * 16 + 4;
 
-    reg::dma2sad::write(uintptr_t(dma_dest + 2 * 16)); // 20 21 22 23...
-    reg::dma2dad::write(uintptr_t(dma_dest + 3 * 16 + 4));
+    mmio::DMA2_SRC = dma_dest + 2 * 16; // 20 21 22 23...
+    mmio::DMA2_DEST = dma_dest + 3 * 16 + 4;
 
-    reg::dma3sad::write(uintptr_t(dma_dest + 3 * 16)); // df de dd dc...
-    reg::dma3dad::write(uintptr_t(dma_dest + 4 * 16 + 4));
+    mmio::DMA3_SRC = dma_dest + 3 * 16; // df de dd dc...
+    mmio::DMA3_DEST = dma_dest + 4 * 16 + 4;
 
     for(int i = 0; i < 16; i++) {
         dma_dest[i] = i;
@@ -101,7 +117,7 @@ void dma_priority() {
         "str %1, [%3]\n"
         "str %1, [%4]\n"
         :
-        : "r" (reg::dma0cnt::address), "r" (dma), "r" (reg::dma1cnt::address), "r" (reg::dma2cnt::address), "r" (reg::dma3cnt::address)
+        : "r" (dma0cnt_addr), "r" (dma), "r" (dma1cnt_addr), "r" (dma2cnt_addr), "r" (dma3cnt_addr)
     );
 
     char buf[30];
@@ -127,17 +143,17 @@ void dma_priority_reverse() {
     // same thing but triggers the DMAs in reverse order
 
     // each DMA overrites part of the source data of the next DMA
-    reg::dma0sad::write(uintptr_t(dma_dest + 0 * 16));  // 0 1 2 3...
-    reg::dma0dad::write(uintptr_t(dma_dest + 1 * 16 + 4));
+    mmio::DMA0_SRC = dma_dest + 0 * 16;  // 0 1 2 3...
+    mmio::DMA0_DEST = dma_dest + 1 * 16 + 4;
 
-    reg::dma1sad::write(uintptr_t(dma_dest + 1 * 16)); // ff fe fd fc...
-    reg::dma1dad::write(uintptr_t(dma_dest + 2 * 16 + 4));
+    mmio::DMA1_SRC = dma_dest + 1 * 16; // ff fe fd fc...
+    mmio::DMA1_DEST = dma_dest + 2 * 16 + 4;
 
-    reg::dma2sad::write(uintptr_t(dma_dest + 2 * 16)); // 20 21 22 23...
-    reg::dma2dad::write(uintptr_t(dma_dest + 3 * 16 + 4));
+    mmio::DMA2_SRC = dma_dest + 2 * 16; // 20 21 22 23...
+    mmio::DMA2_DEST = dma_dest + 3 * 16 + 4;
 
-    reg::dma3sad::write(uintptr_t(dma_dest + 3 * 16)); // df de dd dc...
-    reg::dma3dad::write(uintptr_t(dma_dest + 4 * 16 + 4));
+    mmio::DMA3_SRC = dma_dest + 3 * 16; // df de dd dc...
+    mmio::DMA3_DEST = dma_dest + 4 * 16 + 4;
 
     for(int i = 0; i < 16; i++) {
         dma_dest[i] = i;
@@ -157,7 +173,7 @@ void dma_priority_reverse() {
         "str %1, [%3]\n"
         "str %1, [%4]\n"
         :
-        : "r" (reg::dma3cnt::address), "r" (dma), "r" (reg::dma2cnt::address), "r" (reg::dma1cnt::address), "r" (reg::dma0cnt::address)
+        : "r" (dma3cnt_addr), "r" (dma), "r" (dma2cnt_addr), "r" (dma1cnt_addr), "r" (dma0cnt_addr)
     );
 
     char buf[30];
@@ -183,16 +199,16 @@ void dma_priority_hblank() {
     // tries to start a dma in the middle of another one
 
     // high priority
-    reg::dma0sad::write(uintptr_t(dma_dest + 0 * 16));
-    reg::dma0dad::write(uintptr_t(dma_dest + 1 * 16));
-    reg::dma0cnt_l::write(8);
+    mmio::DMA0_SRC = dma_dest + 0 * 16;
+    mmio::DMA0_DEST = dma_dest + 1 * 16;
+    mmio::DMA0_COUNT = 8;
 
     // low priority
-    reg::dma3sad::write(0x8000000); // from ROM
-    reg::dma3dad::write(uintptr_t(dma_dest + 5 * 16));
-    reg::dma3cnt_l::write(300);
+    mmio::DMA3_SRC = reinterpret_cast<void *>(0x8000000); // from ROM
+    mmio::DMA3_DEST = dma_dest + 5 * 16;
+    mmio::DMA3_COUNT = 300;
 
-    agbabi::wordset4(dma_dest, sizeof(dma_dest), 0);
+    wordset4(dma_dest, sizeof(dma_dest), 0);
 
     for(int i = 0; i < 16; i++)
         dma_dest[i] = i + 1;
@@ -201,14 +217,14 @@ void dma_priority_hblank() {
     const uint16_t dma3 = 0x8040; // enable, dest fixed
 
     // start of first line
-    while(reg::vcount::read() != 0);
+    while(*mmio::VCOUNT != 0);
 
     // start DMAs
     asm volatile(
         "strh %2, [%0]\n"
         "strh %3, [%1]\n"
         :
-        : "r" (reg::dma0cnt_h::address), "r" (reg::dma3cnt_h::address), "r" (dma0), "r" (dma3)
+        : "r" (dma0cnt_h_addr), "r" (dma3cnt_h_addr), "l" (dma0), "l" (dma3)
     );
 
     char buf[30];
@@ -232,21 +248,21 @@ void dma_priority_hblank() {
 [[gnu::section(".iwram")]]
 void dma_timer() {
     // use DMA to read a timer repeatedly... which seems like a silly thing to do
-    reg::dma3sad::write(reg::tm0d::address);
-    reg::dma3dad::write(uintptr_t(dma_dest));
+    mmio::DMA3_SRC = reinterpret_cast<void *>(tm0d_addr);
+    mmio::DMA3_DEST = dma_dest;
 
-    /*reg::tm0d_cnt::write({
+    /*reg::tm0d_cnt = {
         .control = {
             .enable = true
         }
-    });
-    reg::dma3cnt::write(gba::dma_transfer_control {
+    };
+    reg::dma3cnt = gba::dma_transfer_control {
         .transfers = 4,
         .control = {
             .source_control = dma_control::source_address::fixed,
             .enable = true
         }
-    });*/
+    };*/
 
     const uint32_t timer = 0x800000; // enable
     const uint32_t dma = 0x81000004; // enable, fixed src, 4 transfers
@@ -256,10 +272,10 @@ void dma_timer() {
         "str %1, [%0]\n"
         "str %3, [%2]\n"
         :
-        : "r" (reg::tm0d_cnt::address), "r" (timer), "r" (reg::dma3cnt::address), "r" (dma)
+        : "r" (tm0d_addr), "r" (timer), "r" (dma3cnt_addr), "r" (dma)
     );
 
-    reg::tm0d_cnt::write({});
+    mmio::TIMER0_CONTROL.reset();
 
     char buf[10];
 
@@ -275,10 +291,10 @@ void dma_timer() {
 void dma_timer_multi() {
     // use two DMA channels to read a timer repeatedly... which is an even sillier thing to do
 
-    reg::dma3sad::write(reg::tm0d::address);
-    reg::dma3dad::write(uintptr_t(dma_dest));
-    reg::dma2sad::write(reg::tm0d::address);
-    reg::dma2dad::write(uintptr_t(dma_dest + 8));
+    mmio::DMA3_SRC = reinterpret_cast<void *>(tm0d_addr);
+    mmio::DMA3_DEST = dma_dest;
+    mmio::DMA2_SRC = reinterpret_cast<void *>(tm0d_addr);
+    mmio::DMA2_DEST = dma_dest + 8;
 
     const uint32_t timer = 0x800000; // enable
     const uint32_t dma = 0x81000004; // enable, fixed src, 4 transfers
@@ -289,10 +305,10 @@ void dma_timer_multi() {
         "str %4, [%2]\n"
         "str %4, [%3]\n"
         :
-        : "r" (reg::tm0d_cnt::address), "r" (timer), "r" (reg::dma3cnt::address), "r" (reg::dma2cnt::address), "r" (dma)
+        : "r" (tm0d_addr), "r" (timer), "r" (dma3cnt_addr), "r" (dma2cnt_addr), "r" (dma)
     );
 
-    reg::tm0d_cnt::write({});
+    mmio::TIMER0_CONTROL.reset();
 
     char buf[20];
 

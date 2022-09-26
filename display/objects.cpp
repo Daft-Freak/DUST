@@ -9,14 +9,14 @@ using namespace gba;
 
 static const int oam_addr = 0x07000000;
 
-static void set_object(int index, object::attr0 attr0, object::attr1_regular attr1, object::attr2 attr2) {
-    object_regular object {attr0, attr1, attr2};
-    agbabi::memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(object)), &object, sizeof(object));
+static void set_object(int index, objattr0 attr0, objattr1 attr1, objattr2 attr2) {
+    objattr object {attr0, attr1, attr2};
+    __agbabi_memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(objattr8)), &object, sizeof(object));
 }
 
-static void set_object(int index, object::attr0 attr0, object::attr1_affine attr1, object::attr2 attr2) {
-    object_affine object{attr0, attr1, attr2};
-    agbabi::memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(object)), &object, sizeof(object));
+static void set_object(int index, objattr0 attr0, objattr1_affine attr1, objattr2 attr2) {
+    objattr_affine object{attr0, attr1, attr2};
+    __agbabi_memcpy2(reinterpret_cast<void *>(oam_addr + index * sizeof(objattr8)), &object, sizeof(object));
 }
 
 static void set_affine_params(int index, uint16_t a, uint16_t b, uint16_t c, uint16_t d) {
@@ -28,64 +28,63 @@ static void set_affine_params(int index, uint16_t a, uint16_t b, uint16_t c, uin
     ptr[12] = d;
 }
 
-static void setup_objects(object::mode mode, color_depth depth = color_depth::bpp_4, bool flip_h = false, bool flip_v = false, uint16_t pal_num = 0) {
+static void setup_objects(obj_display mode, bool depth_8 = false, bool flip_h = false, bool flip_v = false, uint16_t pal_num = 0) {
     const int spacing = 10;
     uint16_t x = spacing, y = spacing;
 
-    // tile mapping is diffent for 8bpp, so sheet is rearranged
-    bool is_8 = depth == color_depth::bpp_8;
+    // tile mapping is different for 8bpp, so sheet is rearranged
 
     // size 0
 
     // 8x8
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 0
-    }, object::attr2 {
-        .tile_index = 0,
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = 0,
+        .palbank = pal_num
     });
     y += 8 + spacing;
 
     // 16x8
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 0
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 2 : 1),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 2 : 1),
+        .palbank = pal_num
     });
 
     y += 8 + spacing;
 
     // 8x16
-    set_object(2, object::attr0 {
+    set_object(2, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 0
-    }, object::attr2 {
-        .tile_index = 32,
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = 32,
+        .palbank = pal_num
     });
 
     y = spacing;
@@ -94,55 +93,55 @@ static void setup_objects(object::mode mode, color_depth depth = color_depth::bp
     // size 1
 
     // 16x16
-    set_object(3, object::attr0 {
+    set_object(3, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 1
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 6 : 3),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 6 : 3),
+        .palbank = pal_num
     });
 
     y += 16 + spacing;
 
     // 32x8
-    set_object(4, object::attr0 {
+    set_object(4, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 1
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 10 : 5),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 10 : 5),
+        .palbank = pal_num
     });
 
     y += 8 + spacing;
 
     // 8x32
-    set_object(5, object::attr0 {
+    set_object(5, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 1
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 18 : 9),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 18 : 9),
+        .palbank = pal_num
     });
 
     x += 32 + spacing;
@@ -151,55 +150,55 @@ static void setup_objects(object::mode mode, color_depth depth = color_depth::bp
     // size 2
 
     // 32x32
-    set_object(6, object::attr0 {
+    set_object(6, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 2
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 20 : 10),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 20 : 10),
+        .palbank = pal_num
     });
 
     y += 32 + spacing;
 
     // 32x16
-    set_object(7, object::attr0 {
+    set_object(7, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 2
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 42 : 14),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 42 : 14),
+        .palbank = pal_num
     });
 
     y += 16 + spacing;
 
     // 16x32
-    set_object(8, object::attr0 {
+    set_object(8, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 2
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 28 : 18),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 28 : 18),
+        .palbank = pal_num
     });
 
     x += 32 + spacing;
@@ -208,37 +207,37 @@ static void setup_objects(object::mode mode, color_depth depth = color_depth::bp
     // size 3
 
     // 64x64
-    set_object(9, object::attr0 {
+    set_object(9, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 3
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 264 : 20),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 264 : 20),
+        .palbank = pal_num
     });
 
     y += 64 + spacing;
 
     // 64x32
-    set_object(10, object::attr0 {
+    set_object(10, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 3
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 144 : 140),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 144 : 140),
+        .palbank = pal_num
     });
 
     // new column, no space left
@@ -246,79 +245,78 @@ static void setup_objects(object::mode mode, color_depth depth = color_depth::bp
     x += 64 + spacing;
 
     // 32x64
-    set_object(11, object::attr0 {
+    set_object(11, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_regular {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1 {
         .x = x,
-        .flip_horizontal = flip_h,
-        .flip_vertical = flip_v,
+        .hflip = flip_h,
+        .vflip = flip_v,
         .size = 3
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 280 : 28),
-        .palette_bank = pal_num
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 280 : 28),
+        .palbank = pal_num
     });
 
     // hide everything else off-screen
     for(int i = 12; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 }
 
 // mostly copy/paste... but sets affine_index
-static void setup_affine_objects(object::mode mode, color_depth depth = color_depth::bpp_4) {
+static void setup_affine_objects(obj_display mode, bool depth_8 = false) {
     const int spacing = 10;
     uint16_t x = spacing, y = spacing;
 
     // tile mapping is diffent for 8bpp, so sheet is rearranged
-    bool is_8 = depth == color_depth::bpp_8;
 
     // size 0
 
     // 8x8
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1_affine {
         .x = x,
         .affine_index = 0,
         .size = 0
-    }, object::attr2 {
-        .tile_index = 0
+    }, objattr2 {
+        .tile_id = 0
     });
     y += 8 + spacing;
 
     // 16x8
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1_affine {
         .x = x,
         .affine_index = 1,
         .size = 0
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 2 : 1),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 2 : 1),
     });
 
     y += 8 + spacing;
 
     // 8x16
-    set_object(2, object::attr0 {
+    set_object(2, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1_affine {
         .x = x,
         .affine_index = 2,
         .size = 0
-    }, object::attr2 {
-        .tile_index = 32,
+    }, objattr2 {
+        .tile_id = 32,
     });
 
     y = spacing;
@@ -327,49 +325,49 @@ static void setup_affine_objects(object::mode mode, color_depth depth = color_de
     // size 1
 
     // 16x16
-    set_object(3, object::attr0 {
+    set_object(3, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1_affine {
         .x = x,
         .affine_index = 3,
         .size = 1
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 6 : 3),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 6 : 3),
     });
 
     y += 16 + spacing;
 
     // 32x8
-    set_object(4, object::attr0 {
+    set_object(4, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1_affine {
         .x = x,
         .affine_index = 4,
         .size = 1
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 10 : 5),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 10 : 5),
     });
 
     y += 8 + spacing;
 
     // 8x32
-    set_object(5, object::attr0 {
+    set_object(5, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1_affine {
         .x = x,
         .affine_index = 5,
         .size = 1
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 18 : 9),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 18 : 9),
     });
 
     x += 32 + spacing;
@@ -378,49 +376,49 @@ static void setup_affine_objects(object::mode mode, color_depth depth = color_de
     // size 2
 
     // 32x32
-    set_object(6, object::attr0 {
+    set_object(6, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1_affine {
         .x = x,
         .affine_index = 6,
         .size = 2
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 20 : 10),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 20 : 10),
     });
 
     y += 32 + spacing;
 
     // 32x16
-    set_object(7, object::attr0 {
+    set_object(7, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1_affine {
         .x = x,
         .affine_index = 7,
         .size = 2
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 42 : 14),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 42 : 14),
     });
 
     y += 16 + spacing;
 
     // 16x32
-    set_object(8, object::attr0 {
+    set_object(8, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1_affine {
         .x = x,
         .affine_index = 8,
         .size = 2
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 28 : 18),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 28 : 18),
     });
 
     x += 32 + spacing;
@@ -429,33 +427,33 @@ static void setup_affine_objects(object::mode mode, color_depth depth = color_de
     // size 3
 
     // 64x64
-    set_object(9, object::attr0 {
+    set_object(9, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::square
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::square
+    }, objattr1_affine {
         .x = x,
         .affine_index = 9,
         .size = 3
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 264 : 20),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 264 : 20),
     });
 
     y += 64 + spacing;
 
     // 64x32
-    set_object(10, object::attr0 {
+    set_object(10, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::wide
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::horizontal
+    }, objattr1_affine {
         .x = x,
         .affine_index = 10,
         .size = 3
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 144 : 140),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 144 : 140),
     });
 
     // new column, no space left
@@ -463,22 +461,22 @@ static void setup_affine_objects(object::mode mode, color_depth depth = color_de
     x += 64 + spacing;
 
     // 32x64
-    set_object(11, object::attr0 {
+    set_object(11, objattr0 {
         .y = y,
-        .object_mode = mode,
-        .color_mode = depth,
-        .shape = object::shape::tall
-    }, object::attr1_affine {
+        .style = mode,
+        .bpp8 = depth_8,
+        .shape = obj_shape::vertical
+    }, objattr1_affine {
         .x = x,
         .affine_index = 11,
         .size = 3
-    }, object::attr2 {
-        .tile_index = uint16_t(is_8 ? 280 : 28),
+    }, objattr2 {
+        .tile_id = uint16_t(depth_8 ? 280 : 28),
     });
 
     // hide everything else off-screen
     for(int i = 12; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 }
 
 
@@ -488,15 +486,15 @@ void display_obj_regular() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular);
+    setup_objects(obj_display::normal);
 
     wait_for_exit();
 }
@@ -507,15 +505,15 @@ void display_obj_affine() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::affine);
+    setup_objects(obj_display::affine);
 
     // init affine params
     set_affine_params(0, 1 << 8, 0, 0, 1 << 8);
@@ -529,15 +527,15 @@ void display_obj_affine_double() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::affine_double);
+    setup_objects(obj_display::affine_double);
 
     // init affine params
     set_affine_params(0, 1 << 8, 0, 0, 1 << 8);
@@ -552,15 +550,15 @@ void display_obj_hidden() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::hidden);
+    setup_objects(obj_display::hidden);
 
     wait_for_exit();
 }
@@ -569,15 +567,15 @@ void display_obj_regular_8bpp() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular, color_depth::bpp_8);
+    setup_objects(obj_display::normal, true);
 
     wait_for_exit();
 }
@@ -586,15 +584,15 @@ void display_obj_affine_8bpp() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::affine, color_depth::bpp_8);
+    setup_objects(obj_display::affine, true);
 
     // init affine params
     set_affine_params(0, 1 << 8, 0, 0, 1 << 8);
@@ -608,15 +606,15 @@ void display_obj_regular_hflip() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular, color_depth::bpp_4, true);
+    setup_objects(obj_display::normal, false, true);
 
     wait_for_exit();
 }
@@ -627,15 +625,15 @@ void display_obj_regular_vflip() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular, color_depth::bpp_4, false, true);
+    setup_objects(obj_display::normal, false, false, true);
 
     wait_for_exit();
 }
@@ -646,15 +644,15 @@ void display_obj_regular_hvflip() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular, color_depth::bpp_4, true, true);
+    setup_objects(obj_display::normal, false, true, true);
 
     wait_for_exit();
 }
@@ -666,17 +664,13 @@ static void setup_affine_params() {
         if(i & 1)
             scale = 1.0f / scale;
 
-        bios::obj_affine_input input {
-            .scale_x = scale,
-            .scale_y = scale,
-            .rotation = (i + 1) * 10
+        bios::obj_affine_src input {
+            .alpha = ((i + 1) * 10) << 8
         };
 
-        // hack to avoid input getting optimised out...
-        volatile uint32_t buf[2];
-        memcpy((void *)buf, &input, sizeof(input));
+        input.sx.m_data = input.sy.m_data = scale * (1 << 8);
 
-        bios::obj_affine_set(&input, reinterpret_cast<object::mat2 *>(oam_addr + i * 8 * 4 + 6), 1, 8);
+        bios::ObjAffineSet(&input, reinterpret_cast<fixed<short, 8> *>(oam_addr + i * 8 * 4 + 6), 1, 8);
     }
 }
 
@@ -684,15 +678,15 @@ void display_obj_affine_rotscale() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_affine_objects(object::mode::affine);
+    setup_affine_objects(obj_display::affine);
     setup_affine_params();
 
     wait_for_exit();
@@ -702,15 +696,15 @@ void display_obj_affine_double_rotscale() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_affine_objects(object::mode::affine_double);
+    setup_affine_objects(obj_display::affine_double);
     setup_affine_params();
 
     wait_for_exit();
@@ -720,19 +714,19 @@ void display_obj_regular_4bpp_pal() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
     palette_ram[256 + 17] = 0x000F;
     palette_ram[256 + 18] = 0x1084;
     palette_ram[256 + 19] = 0x0007;
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular, color_depth::bpp_4, false, false, 1);
+    setup_objects(obj_display::normal, false, false, false, 1);
 
     wait_for_exit();
 }
@@ -743,16 +737,16 @@ void display_obj_regular_1d() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .object_tile_map = object::tile_map::one_dimensional,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .obj_vram_1d = true,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular);
+    setup_objects(obj_display::normal);
 
     wait_for_exit();
 }
@@ -761,16 +755,16 @@ void display_obj_regular_8bpp_1d() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .object_tile_map = object::tile_map::one_dimensional,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .obj_vram_1d = true,
+        .show_obj = true,
+    };
 
-    setup_objects(object::mode::regular, color_depth::bpp_8);
+    setup_objects(obj_display::normal, true);
 
     wait_for_exit();
 }
@@ -779,121 +773,121 @@ void display_obj_wrap_x() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
     // right edge of the screen, no wrapping
 
     // 8x8
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = 0,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 240 - 4,
-    }, object::attr2 {
-        .tile_index = 0
+    }, objattr2 {
+        .tile_id = 0
     });
 
     // 16x16
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = 8,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 240 - 8,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 3
+    }, objattr2 {
+        .tile_id = 3
     });
 
     // 32x32
-    set_object(2, object::attr0 {
+    set_object(2, objattr0 {
         .y = 24,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 240 - 16,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 10
+    }, objattr2 {
+        .tile_id = 10
     });
 
     // 64x64
-    set_object(3, object::attr0 {
+    set_object(3, objattr0 {
         .y = 56,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 240 - 32,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // 128x128 (64x64 x2)
-    set_object(4, object::attr0 {
+    set_object(4, objattr0 {
         .y = 0,
-        .object_mode = object::mode::affine_double
-    }, object::attr1_regular {
+        .style = obj_display::affine_double
+    }, objattr1 {
         .x = 240 - 64,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // wrap back to left
 
     // 8x8
-    set_object(5, object::attr0 {
+    set_object(5, objattr0 {
         .y = 152,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 512 - 4,
-    }, object::attr2 {
-        .tile_index = 0
+    }, objattr2 {
+        .tile_id = 0
     });
 
     // 16x16
-    set_object(6, object::attr0 {
+    set_object(6, objattr0 {
         .y = 136,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 512 - 8,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 3
+    }, objattr2 {
+        .tile_id = 3
     });
 
     // 32x32
-    set_object(7, object::attr0 {
+    set_object(7, objattr0 {
         .y = 104,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 512 - 16,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 10
+    }, objattr2 {
+        .tile_id = 10
     });
 
     // 64x64
-    set_object(8, object::attr0 {
+    set_object(8, objattr0 {
         .y = 40,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 512 - 32,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20 
+    }, objattr2 {
+        .tile_id = 20 
     });
 
     // 128x128 (64x64 x2)
-    set_object(9, object::attr0 {
+    set_object(9, objattr0 {
         .y = 32,
-        .object_mode = object::mode::affine_double
-    }, object::attr1_regular {
+        .style = obj_display::affine_double
+    }, objattr1 {
         .x = 512 - 64,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // hide everything else off-screen
     for(int i = 10; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 
     // 2x scale
     set_affine_params(0, 0x80, 0, 0, 0x80);
@@ -905,121 +899,121 @@ void display_obj_wrap_y() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
     // bottom edge of the screen, no wrapping
 
     // 8x8
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = 160 - 4,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 0,
-    }, object::attr2 {
-        .tile_index = 0
+    }, objattr2 {
+        .tile_id = 0
     });
 
     // 16x16
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = 160 - 8,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 8,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 3
+    }, objattr2 {
+        .tile_id = 3
     });
 
     // 32x32
-    set_object(2, object::attr0 {
+    set_object(2, objattr0 {
         .y = 160 - 16,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 24,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 10
+    }, objattr2 {
+        .tile_id = 10
     });
 
     // 64x64
-    set_object(3, object::attr0 {
+    set_object(3, objattr0 {
         .y = 160 - 32,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 56,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // 128x128 (64x64 x2)
-    set_object(4, object::attr0 {
+    set_object(4, objattr0 {
         .y = 160 - 64,
-        .object_mode = object::mode::affine_double
-    }, object::attr1_regular {
+        .style = obj_display::affine_double
+    }, objattr1 {
         .x = 120,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // wrap back to top
 
     // 8x8
-    set_object(5, object::attr0 {
+    set_object(5, objattr0 {
         .y = 256 - 4,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 232,
-    }, object::attr2 {
-        .tile_index = 0
+    }, objattr2 {
+        .tile_id = 0
     });
 
     // 16x16
-    set_object(6, object::attr0 {
+    set_object(6, objattr0 {
         .y = 256 - 8,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 216,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 3
+    }, objattr2 {
+        .tile_id = 3
     });
 
     // 32x32
-    set_object(7, object::attr0 {
+    set_object(7, objattr0 {
         .y = 256 - 16,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 184,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 10
+    }, objattr2 {
+        .tile_id = 10
     });
 
     // 64x64
-    set_object(8, object::attr0 {
+    set_object(8, objattr0 {
         .y = 256 - 32,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 120,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20 
+    }, objattr2 {
+        .tile_id = 20 
     });
 
     // 128x128 (64x64 x2)
-    set_object(9, object::attr0 {
+    set_object(9, objattr0 {
         .y = 256 - 64,
-        .object_mode = object::mode::affine_double
-    }, object::attr1_regular {
+        .style = obj_display::affine_double
+    }, objattr1 {
         .x = 504, // -8
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // hide everything else off-screen
     for(int i = 10; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 
     // 2x scale
     set_affine_params(0, 0x80, 0, 0, 0x80);
@@ -1031,40 +1025,40 @@ void display_obj_wrap_y_bug() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
     // 128x128 (64x64 x2)
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = 128,
-        .object_mode = object::mode::affine_double
-    }, object::attr1_regular {
+        .style = obj_display::affine_double
+    }, objattr1 {
         .x = 120,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // should have 31 pixels visivle at the bottom and wrap around to the top
     // instead only shows at the top
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = 129,
-        .object_mode = object::mode::affine_double
-    }, object::attr1_regular {
+        .style = obj_display::affine_double
+    }, objattr1 {
         .x = 504, // -8
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // hide everything else off-screen
     for(int i = 2; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 
     // 2x scale
     set_affine_params(0, 0x80, 0, 0, 0x80);
@@ -1076,61 +1070,61 @@ void display_obj_priority() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
     // both priority 0, obj 0 should be on top of obj 1
 
     // 8x8
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = 12,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 12,
-    }, object::attr2 {
-        .tile_index = 0
+    }, objattr2 {
+        .tile_id = 0
     });
 
     // 16x16
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = 8,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 8,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 3
+    }, objattr2 {
+        .tile_id = 3
     });
 
     // obj 2 should be on top of obj 3, but it has a lower priority so it isn't
 
     // 64x64
-    set_object(2, object::attr0 {
+    set_object(2, objattr0 {
         .y = 8,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 32,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20,
+    }, objattr2 {
+        .tile_id = 20,
         .priority = 1
     });
 
     // 32x32
-    set_object(3, object::attr0 {
+    set_object(3, objattr0 {
         .y = 24,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 48,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 10
+    }, objattr2 {
+        .tile_id = 10
     });
 
     // hide everything else off-screen
     for(int i = 4; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 
     wait_for_exit();
 }
@@ -1139,73 +1133,73 @@ void display_obj_priority_bug() {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_obj = true,
+    };
 
     // add layer at priority 0
-    reg::bg0cnt::write(background_control {
-        .screen_base_block = 2
-    });
-    
-    agbabi::wordset4(video_ram + 0x0800, 0x800, 0);
-    agbabi::wordset4(video_ram, 64, 0x11111111);
+    mmio::BG0CNT = {
+        .screenblock = 2
+    };
+
+    __agbabi_wordset4(video_ram + 0x0800, 0x800, 0);
+    __agbabi_wordset4(video_ram, 64, 0x11111111);
 
     palette_ram[1] = 0x4210;
 
     // both priority 0, obj 0 should be on top of obj 1
 
     // 8x8
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = 12,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 12,
-    }, object::attr2 {
-        .tile_index = 0
+    }, objattr2 {
+        .tile_id = 0
     });
 
     // 16x16
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = 8,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 8,
         .size = 1
-    }, object::attr2 {
-        .tile_index = 3
+    }, objattr2 {
+        .tile_id = 3
     });
 
     // obj 2 should be on top of obj 3, but it has a lower priority so it isn't
     // ... and as there's a layer in the middle there's a bug
 
     // 64x64
-    set_object(2, object::attr0 {
+    set_object(2, objattr0 {
         .y = 8,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 32,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20,
+    }, objattr2 {
+        .tile_id = 20,
         .priority = 1
     });
 
     // 32x32
-    set_object(3, object::attr0 {
+    set_object(3, objattr0 {
         .y = 24,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 48,
         .size = 2
-    }, object::attr2 {
-        .tile_index = 10
+    }, objattr2 {
+        .tile_id = 10
     });
 
     // hide everything else off-screen
     for(int i = 4; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 
     wait_for_exit();
 }
@@ -1215,73 +1209,73 @@ void display_obj_bmp_char_base() {
 
     // load sprites
     // first 16 is used by background so these can't be used
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
     // this should be okay
-    agbabi::memcpy2(video_ram + 0x14000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x14000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
 
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 3, // bitmap
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 3, // bitmap
+        .show_obj = true,
+    };
 
     // this sprite won't be shown
-    set_object(0, object::attr0 {
+    set_object(0, objattr0 {
         .y = 16,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 16,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20
+    }, objattr2 {
+        .tile_id = 20
     });
 
     // this one will
-    set_object(1, object::attr0 {
+    set_object(1, objattr0 {
         .y = 16,
-    }, object::attr1_regular {
+    }, objattr1 {
         .x = 64 + 32,
         .size = 3
-    }, object::attr2 {
-        .tile_index = 20 + 512
+    }, objattr2 {
+        .tile_id = 20 + 512
     });
 
     // hide everything else off-screen
     for(int i = 2; i < 128; i++)
-        set_object(i, {.y = 160}, object::attr1_regular {}, {});
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
 
     wait_for_exit();
 }
 
-static void object_limit_test(uint16_t size, object::mode mode = object::mode::regular, int x_off = 0, bool partial_hidden = false) {
+static void object_limit_test(uint16_t size, obj_display mode = obj_display::normal, int x_off = 0, bool partial_hidden = false) {
     palette_ram[0] = 0x4210;
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
 
     const uint16_t tiles[]{0, 3, 10, 20};
 
     int y_mask = (4 << size) - 1;
 
     for(int i = 0; i < 128; i++) {
-        set_object(i, object::attr0 {
+        set_object(i, objattr0 {
             .y = uint16_t(i & y_mask),
-            .object_mode = partial_hidden && i < 64 ? object::mode::hidden : mode
-        }, object::attr1_regular {
+            .style = partial_hidden && i < 64 ? obj_display::hidden : mode
+        }, objattr1 {
             .x = uint16_t(i + x_off),
             .size = size
-        }, object::attr2 {
-            .tile_index = tiles[size]
+        }, objattr2 {
+            .tile_id = tiles[size]
         });
     }
 
-    set_affine_params(0, mode == object::mode::affine_double ? 0x80 : 0x100, 0, 0, mode == object::mode::affine_double ? 0x80 : 0x100);
+    set_affine_params(0, mode == obj_display::affine_double ? 0x80 : 0x100, 0, 0, mode == obj_display::affine_double ? 0x80 : 0x100);
 }
 
 void display_obj_line_limit_regular_size0() {
@@ -1305,76 +1299,76 @@ void display_obj_line_limit_regular_size3() {
 }
 
 void display_obj_line_limit_affine_size0() {
-    object_limit_test(0, object::mode::affine);
+    object_limit_test(0, obj_display::affine);
     wait_for_exit();
 }
 
 void display_obj_line_limit_affine_size1() {
-    object_limit_test(1, object::mode::affine);
+    object_limit_test(1, obj_display::affine);
     wait_for_exit();
 }
 
 void display_obj_line_limit_affine_size2() {
-    object_limit_test(2, object::mode::affine);
+    object_limit_test(2, obj_display::affine);
     wait_for_exit();
 }
 
 void display_obj_line_limit_affine_size3() {
-    object_limit_test(3, object::mode::affine);
+    object_limit_test(3, obj_display::affine);
     wait_for_exit();
 }
 
 void display_obj_line_limit_affine_double_size0() {
-    object_limit_test(0, object::mode::affine_double);
+    object_limit_test(0, obj_display::affine_double);
     wait_for_exit();
 }
 
 void display_obj_line_limit_affine_double_size1() {
-    object_limit_test(1, object::mode::affine_double);
+    object_limit_test(1, obj_display::affine_double);
     wait_for_exit();
 }
 
 void display_obj_line_limit_affine_double_size2() {
-    object_limit_test(2, object::mode::affine_double);
+    object_limit_test(2, obj_display::affine_double);
     wait_for_exit();
 }
 
 void display_obj_line_limit_affine_double_size3() {
-    object_limit_test(3, object::mode::affine_double);
+    object_limit_test(3, obj_display::affine_double);
     wait_for_exit();
 }
 
 // not testing every variant because there are already too many tests here...
 void display_obj_line_limit_regular_offscreen() {
     // move some of the sprites off the screen
-    object_limit_test(2, object::mode::regular, -64);
+    object_limit_test(2, obj_display::normal, -64);
     wait_for_exit();
 }
 
 void display_obj_line_limit_regular_hidden() {
     // first half set to hidden
-    object_limit_test(2, object::mode::regular, 0, true);
+    object_limit_test(2, obj_display::normal, 0, true);
     wait_for_exit();
 }
 
 void display_obj_line_limit_regular_size0_hblank_access() {
     object_limit_test(0);
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .oam_hblank_access = oam_hblank_access::unlocked,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .hblank_oam_free = true,
+        .show_obj = true,
+    };
     wait_for_exit();
 }
 
 void display_obj_line_limit_regular_size2_hblank_access() {
     object_limit_test(2);
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .oam_hblank_access = oam_hblank_access::unlocked,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .hblank_oam_free = true,
+        .show_obj = true,
+    };
     wait_for_exit();
 }

@@ -9,16 +9,16 @@ using namespace gba;
 void display_layer2_mode0() {
     // basic test, mode 1 is identical for all layers
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_2 = true,
-    });
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 2,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg2 = true,
+    };
+    mmio::BG2CNT = {
+        .screenblock = 2,
+    };
 
-    reg::bg2hofs::write(0);
-    reg::bg2vofs::write(0);
+    mmio::BG2HOFS = 0;
+    mmio::BG2VOFS = 0;
 
     clear_text();
     write_text(5, 10, "Hello from layer 2!");
@@ -27,27 +27,27 @@ void display_layer2_mode0() {
 }
 
 static void reset_affine() {
-    reg::bg2pa::write(1);
-    reg::bg2pb::write(0);
-    reg::bg2pc::write(0);
-    reg::bg2pd::write(1);
-    reg::bg2x::write(0);
-    reg::bg2y::write(0);
+    mmio::BG2PA = 1;
+    mmio::BG2PB = 0;
+    mmio::BG2PC = 0;
+    mmio::BG2PD = 1;
+    mmio::BG2X = 0;
+    mmio::BG2Y = 0;
 }
 
 void display_layer2_mode1() {
     // affine
-    reg::dispcnt::write({
-        .mode = 1,
-        .layer_background_2 = true,
-    });
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 2,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 1,
+        .show_bg2 = true,
+    };
+    mmio::BG2CNT = {
+        .screenblock = 2,
+    };
 
     // these have no effect
-    reg::bg2hofs::write(100);
-    reg::bg2vofs::write(100);
+    mmio::BG2HOFS = 100;
+    mmio::BG2VOFS = 100;
 
     reset_affine();
 
@@ -59,14 +59,14 @@ void display_layer2_mode1() {
 
 void display_layer2_mode1_char_base() {
     // same thing, different char base
-    reg::dispcnt::write({
-        .mode = 1,
-        .layer_background_2 = true,
-    });
-    reg::bg2cnt::write(background_control {
-        .character_base_block = 1,
-        .screen_base_block = 2,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 1,
+        .show_bg2 = true,
+    };
+    mmio::BG2CNT = {
+        .charblock = 1,
+        .screenblock = 2,
+    };
 
     reset_affine();
 
@@ -77,19 +77,19 @@ void display_layer2_mode1_char_base() {
 }
 
 void display_layer2_mode1_wrap() {
-    reg::dispcnt::write({
-        .mode = 1,
-        .layer_background_2 = true,
-    });
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 2,
-        .affine_background_wrap = affine_background_wrap::wrap
-    });
+    mmio::DISPCNT = {
+        .video_mode = 1,
+        .show_bg2 = true,
+    };
+    mmio::BG2CNT = {
+        .screenblock = 2,
+        .is_affine_wrapping = true
+    };
 
     // center it
     reset_affine();
-    reg::bg2x::write(-56);
-    reg::bg2y::write(-16);
+    mmio::BG2X = -56;
+    mmio::BG2Y = -16;
 
     // generate some 8bpp tiles
     gen_affine_tiles(video_ram, video_ram + 0x800, 16);
@@ -97,23 +97,23 @@ void display_layer2_mode1_wrap() {
     wait_for_exit();
 }
 
-static void size_test(screen_size size) {
-    reg::dispcnt::write({
-        .mode = 1,
-        .layer_background_2 = true,
-    });
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 2,
-        .affine_background_wrap = affine_background_wrap::wrap,
-        .screen_size = size
-    });
+static void size_test(uint16_t size) {
+    mmio::DISPCNT = {
+        .video_mode = 1,
+        .show_bg2 = true,
+    };
+    mmio::BG2CNT = {
+        .screenblock = 2,
+        .is_affine_wrapping = true,
+        .size = size
+    };
 
     int size_px = 128 << static_cast<int>(size);
 
     // center it
     reset_affine();
-    reg::bg2x::write((size_px - 240) / 2);
-    reg::bg2y::write((size_px - 160) / 2);
+    mmio::BG2X = (size_px - 240 / 2);
+    mmio::BG2Y = (size_px - 160 / 2);
 
     // generate some 8bpp tiles
     gen_affine_tiles(video_ram, video_ram + 0x800, size_px / 8);
@@ -122,40 +122,42 @@ static void size_test(screen_size size) {
 }
 
 void display_layer2_mode1_size1() {
-    size_test(screen_size::affine_32x32);
+    size_test(1);
 }
 
 void display_layer2_mode1_size2() {
-    size_test(screen_size::affine_64x64);
+    size_test(2);
 }
 
 void display_layer2_mode1_size3() {
-    size_test(screen_size::affine_128x128);
+    size_test(3);
 }
 
-void display_layer2_mode1_rotscale() {
-    reg::dispcnt::write({
-        .mode = 1,
-        .layer_background_2 = true,
-    });
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 2
-    });
+static const int bg2pa_addr = 0x4000020;
 
-    // transform it
-    static const bios::bg_affine_input input {
-        .origin_x = 64,
-        .origin_y = 64,
-        .display_x = 120,
-        .display_y = 80,
-        .scale_x = 0.5f,
-        .scale_y = 0.5f,
-        .rotation = 0x20 // 1/8
+void display_layer2_mode1_rotscale() {
+    mmio::DISPCNT = {
+        .video_mode = 1,
+        .show_bg2 = true,
+    };
+    mmio::BG2CNT = {
+        .screenblock = 2
     };
 
-    auto output = reinterpret_cast<bios::bg_affine_output *>(reg::bg2pa::address);
+    // transform it
+    static const bios::bg_affine_src input {
+        .tex_x = 64,
+        .tex_y = 64,
+        .scr_x = 120,
+        .scr_y = 80,
+        .sx = 0.5f,
+        .sy = 0.5f,
+        .alpha = 0x2000 // 1/8
+    };
 
-    bios::bg_affine_set(&input, output, 1);
+    auto output = reinterpret_cast<bios::bg_affine_dest *>(bg2pa_addr);
+
+    bios::BgAffineSet(&input, output, 1);
 
     // generate some 8bpp tiles
     gen_affine_tiles(video_ram, video_ram + 0x800, 16);
@@ -166,28 +168,28 @@ void display_layer2_mode1_rotscale() {
 void display_layer2_mode2() {
     // mode 2 is the same as mode 1, so this is the rotscale test again
 
-    reg::dispcnt::write({
-        .mode = 2,
-        .layer_background_2 = true,
-    });
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 2
-    });
-
-    // transform it
-    static const bios::bg_affine_input input {
-        .origin_x = 64,
-        .origin_y = 64,
-        .display_x = 120,
-        .display_y = 80,
-        .scale_x = 0.5f,
-        .scale_y = 0.5f,
-        .rotation = 0x20 // 1/8
+    mmio::DISPCNT = {
+        .video_mode = 2,
+        .show_bg2 = true,
+    };
+    mmio::BG2CNT = {
+        .screenblock = 2
     };
 
-    auto output = reinterpret_cast<bios::bg_affine_output *>(reg::bg2pa::address);
+    // transform it
+    static const bios::bg_affine_src input {
+        .tex_x = 64,
+        .tex_y = 64,
+        .scr_x = 120,
+        .scr_y = 80,
+        .sx = 0.5f,
+        .sy = 0.5f,
+        .alpha = 0x2000 // 1/8
+    };
 
-    bios::bg_affine_set(&input, output, 1);
+    auto output = reinterpret_cast<bios::bg_affine_dest *>(bg2pa_addr);
+
+    bios::BgAffineSet(&input, output, 1);
 
     // generate some 8bpp tiles
     gen_affine_tiles(video_ram, video_ram + 0x800, 16);
@@ -198,16 +200,16 @@ void display_layer2_mode2() {
 // bitmap modes
 
 void display_layer2_mode3() {
-    reg::dispcnt::write({
-        .mode = 3,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 3,
+        .show_bg2 = true,
+    };
 
-    reg::bg2cnt::write({});
+    mmio::BG2CNT = {};
 
     // nope
-    reg::bg2hofs::write(100);
-    reg::bg2vofs::write(100);
+    mmio::BG2HOFS = 100;
+    mmio::BG2VOFS = 100;
 
     reset_affine();
 
@@ -222,27 +224,28 @@ void display_layer2_mode3() {
 
 void display_layer2_mode3_rotscale() {
     // 240x160 bgr555
-    reg::dispcnt::write({
-        .mode = 3,
-        .layer_background_2 = true,
-    });
-
-    // this has no effect
-    reg::bg2cnt::write({.affine_background_wrap = affine_background_wrap::wrap});
-
-    // transform it
-    static const bios::bg_affine_input input {
-        .origin_x = 120,
-        .origin_y = 80,
-        .display_x = 120,
-        .display_y = 80,
-        .scale_x = 2.0f,
-        .scale_y = 2.0f,
-        .rotation = 0x20 // 1/8
+    mmio::DISPCNT = {
+        .video_mode = 3,
+        .show_bg2 = true,
     };
 
-    auto output = reinterpret_cast<bios::bg_affine_output *>(reg::bg2pa::address);
-    bios::bg_affine_set(&input, output, 1);
+    // this has no effect
+    mmio::BG2CNT = {.is_affine_wrapping = true};
+
+    // transform it
+    static const bios::bg_affine_src input {
+        .tex_x = 120,
+        .tex_y = 80,
+        .scr_x = 120,
+        .scr_y = 80,
+        .sx = 2.0f,
+        .sy = 2.0f,
+        .alpha = 0x2000 // 1/8
+    };
+
+    auto output = reinterpret_cast<bios::bg_affine_dest *>(bg2pa_addr);
+    bios::BgAffineSet(&input, output, 1);
+
 
     for(int y = 0; y < 160; y++) {
         for(int x = 0; x < 240; x++) {
@@ -255,16 +258,16 @@ void display_layer2_mode3_rotscale() {
 
 void display_layer2_mode4() {
     // 240x160 paletted
-    reg::dispcnt::write({
-        .mode = 4,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 4,
+        .show_bg2 = true,
+    };
 
-    reg::bg2cnt::write({});
+    mmio::BG2CNT = {};
 
     // nope
-    reg::bg2hofs::write(100);
-    reg::bg2vofs::write(100);
+    mmio::BG2HOFS = 100;
+    mmio::BG2VOFS = 100;
 
     reset_affine();
 
@@ -287,13 +290,13 @@ void display_layer2_mode4() {
 }
 
 void display_layer2_mode4_pageflip() {
-    reg::dispcnt::write({
-        .mode = 4,
+    mmio::DISPCNT = {
+        .video_mode = 4,
         .page = 1,
-        .layer_background_2 = true,
-    });
+        .show_bg2 = true,
+    };
 
-    reg::bg2cnt::write({});
+    mmio::BG2CNT = {};
 
     reset_affine();
 
@@ -318,26 +321,26 @@ void display_layer2_mode4_pageflip() {
 }
 
 void display_layer2_mode4_rotscale() {
-    reg::dispcnt::write({
-        .mode = 4,
-        .layer_background_2 = true,
-    });
-
-    reg::bg2cnt::write({.affine_background_wrap = affine_background_wrap::wrap});
-
-    // transform it
-    static const bios::bg_affine_input input {
-        .origin_x = 120,
-        .origin_y = 80,
-        .display_x = 120,
-        .display_y = 80,
-        .scale_x = 2.0f,
-        .scale_y = 2.0f,
-        .rotation = 0x20 // 1/8
+    mmio::DISPCNT = {
+        .video_mode = 4,
+        .show_bg2 = true,
     };
 
-    auto output = reinterpret_cast<bios::bg_affine_output *>(reg::bg2pa::address);
-    bios::bg_affine_set(&input, output, 1);
+    mmio::BG2CNT = {.is_affine_wrapping = true};
+
+    // transform it
+    static const bios::bg_affine_src input {
+        .tex_x = 120,
+        .tex_y = 80,
+        .scr_x = 120,
+        .scr_y = 80,
+        .sx = 2.0f,
+        .sy = 2.0f,
+        .alpha = 0x2000 // 1/8
+    };
+
+    auto output = reinterpret_cast<bios::bg_affine_dest *>(bg2pa_addr);
+    bios::BgAffineSet(&input, output, 1);
 
     for(int i = 1; i < 256; i++)
         palette_ram[i] = i >> 3 | (0x1F - (i >> 3)) << 10;
@@ -359,16 +362,16 @@ void display_layer2_mode4_rotscale() {
 
 void display_layer2_mode5() {
     // 160x128 rgb555
-    reg::dispcnt::write({
-        .mode = 5,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 5,
+        .show_bg2 = true,
+    };
 
-    reg::bg2cnt::write({});
+    mmio::BG2CNT = {};
 
     // nope
-    reg::bg2hofs::write(100);
-    reg::bg2vofs::write(100);
+    mmio::BG2HOFS = 100;
+    mmio::BG2VOFS = 100;
 
     reset_affine();
 
@@ -383,13 +386,13 @@ void display_layer2_mode5() {
 
 void display_layer2_mode5_pageflip() {
     // 160x128 rgb555
-    reg::dispcnt::write({
-        .mode = 5,
+    mmio::DISPCNT = {
+        .video_mode = 5,
         .page = 1,
-        .layer_background_2 = true,
-    });
+        .show_bg2 = true,
+    };
 
-    reg::bg2cnt::write({});
+    mmio::BG2CNT = {};
 
     reset_affine();
 
@@ -404,26 +407,27 @@ void display_layer2_mode5_pageflip() {
 }
 
 void display_layer2_mode5_rotscale() {
-    reg::dispcnt::write({
-        .mode = 5,
-        .layer_background_2 = true,
-    });
-
-    reg::bg2cnt::write({.affine_background_wrap = affine_background_wrap::wrap});
-
-    // transform it
-    static const bios::bg_affine_input input {
-        .origin_x = 80,
-        .origin_y = 64,
-        .display_x = 120,
-        .display_y = 80,
-        .scale_x = 2.0f,
-        .scale_y = 2.0f,
-        .rotation = 0x20 // 1/8
+    mmio::DISPCNT = {
+        .video_mode = 5,
+        .show_bg2 = true,
     };
 
-    auto output = reinterpret_cast<bios::bg_affine_output *>(reg::bg2pa::address);
-    bios::bg_affine_set(&input, output, 1);
+    mmio::BG2CNT = {.is_affine_wrapping = true};
+
+    // transform it
+    static const bios::bg_affine_src input {
+        .tex_x = 80,
+        .tex_y = 64,
+        .scr_x = 120,
+        .scr_y = 80,
+        .sx = 2.0f,
+        .sy = 2.0f,
+        .alpha = 0x2000 // 1/8
+    };
+
+    auto output = reinterpret_cast<bios::bg_affine_dest *>(bg2pa_addr);
+    bios::BgAffineSet(&input, output, 1);
+
 
     for(int y = 0; y < 128; y++) {
         for(int x = 0; x < 160; x++) {

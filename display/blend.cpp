@@ -6,22 +6,26 @@
 
 using namespace gba;
 
+// gba-hpp is 1 bit off
+inline constexpr auto BLDALPHA = registral<const_ptr<volatile fixed<u8x2, 4>>(0x4000052)>{};
+
+
 static void setup_layers() {
-    reg::bg0cnt::write(background_control {
-        .screen_base_block = 2,
-    });
+    mmio::BG0CNT = {
+        .screenblock = 2,
+    };
 
-    reg::bg1cnt::write(background_control {
-        .screen_base_block = 3,
-    });
+    mmio::BG1CNT = {
+        .screenblock = 3,
+    };
 
-    reg::bg2cnt::write(background_control {
-        .screen_base_block = 4,
-    });
+    mmio::BG2CNT = {
+        .screenblock = 4,
+    };
 
-    reg::bg3cnt::write(background_control {
-        .screen_base_block = 5,
-    });
+    mmio::BG3CNT = {
+        .screenblock = 5,
+    };
 
     palette_ram[1] = 0x03F0;
     palette_ram[2] = 0x001F;
@@ -33,10 +37,10 @@ static void setup_layers() {
     palette_ram[8] = 0x4008;
 
     // fill each block with a digit
-    agbabi::wordset4(video_ram + 0x0800, 0x800, 0x00100010);
-    agbabi::wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
-    agbabi::wordset4(video_ram + 0x1000, 0x800, 0x00120012);
-    agbabi::wordset4(video_ram + 0x1400, 0x800, 0x00130013);
+    __agbabi_wordset4(video_ram + 0x0800, 0x800, 0x00100010);
+    __agbabi_wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
+    __agbabi_wordset4(video_ram + 0x1000, 0x800, 0x00120012);
+    __agbabi_wordset4(video_ram + 0x1400, 0x800, 0x00130013);
 
     // adjust font colours
     // 0/1 -> 1/2, 3/4, 5/6, 7/8
@@ -47,50 +51,47 @@ static void setup_layers() {
         }
     }
 
-    reg::bg0hofs::write(0);
-    reg::bg0vofs::write(0);
-    reg::bg1hofs::write(0);
-    reg::bg1vofs::write(0);
-    reg::bg2hofs::write(0);
-    reg::bg2vofs::write(0);
-    reg::bg3hofs::write(0);
-    reg::bg3vofs::write(0);
+    mmio::BG0HOFS = 0;
+    mmio::BG0VOFS = 0;
+    mmio::BG1HOFS = 0;
+    mmio::BG1VOFS = 0;
+    mmio::BG2HOFS = 0;
+    mmio::BG2VOFS = 0;
+    mmio::BG3HOFS = 0;
+    mmio::BG3VOFS = 0;
 }
 
 void display_blend_mode0() {
     // blend mode 0 == disabled
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+    };
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true, // these don't matter...
-        .src_bg1 = true,
-        .src_bg2 = true,
-        .src_bg3 = true,
-        .src_obj = true,
-        .src_backdrop = true,
-        .mode = blend_mode::off, // ... as blending is off ...
-        .dst_bg0 = true, // ... nope
-        .dst_bg1 = true,
-        .dst_bg2 = true,
-        .dst_bg3 = true,
-        .dst_obj = true,
-        .dst_backdrop = true
-    });
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true, // these don't matter...
+        .target1_bg1 = true,
+        .target1_bg2 = true,
+        .target1_bg3 = true,
+        .target1_obj = true,
+        .target1_backdrop = true,
+        .mode = color_effect::no_effect, // ... as blending is off ...
+        .target2_bg0 = true, // ... nope
+        .target2_bg1 = true,
+        .target2_bg2 = true,
+        .target2_bg3 = true,
+        .target2_obj = true,
+        .target2_backdrop = true
+    };
 
     // pointless
-    reg::bldalpha::write({
-        .eva = 1,
-        .evb = 1,
-    });
+    ::BLDALPHA = {1.0f, 1.0f};
 
     // no effect
-    reg::bldy::write(1);
+    mmio::BLDY = 1;
 
     palette_ram[0] = 0x4210;
 
@@ -101,28 +102,25 @@ void display_blend_mode0() {
 
 void display_blend_mode1() {
     // blend mode 1 == alpha blend
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true, // not enabled so ignored
-        .src_bg1 = true,
-        .mode = blend_mode::alpha,
-        .dst_bg2 = true,
-    });
+        .show_bg1 = true,
+        .show_bg2 = true,
+    };
+
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true, // not enabled so ignored
+        .target1_bg1 = true,
+        .mode = color_effect::alpha_blend,
+        .target2_bg2 = true,
+    };
 
     // 50/50
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
+    ::BLDALPHA = {0.5f, 0.5f};
 
     // no effect
-    reg::bldy::write(0.5f);
+    mmio::BLDY = 0.5f;
 
     palette_ram[0] = 0x4210;
 
@@ -134,34 +132,31 @@ void display_blend_mode1() {
 void display_blend_mode1_all() {
     // blend mode 1 == alpha blend
     // all enabled - first two blend
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+    };
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true,
-        .src_bg1 = true,
-        .src_bg2 = true,
-        .src_bg3 = true,
-        .mode = blend_mode::alpha,
-        .dst_bg0 = true,
-        .dst_bg1 = true,
-        .dst_bg2 = true,
-        .dst_bg3 = true,
-    });
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true,
+        .target1_bg1 = true,
+        .target1_bg2 = true,
+        .target1_bg3 = true,
+        .mode = color_effect::alpha_blend,
+        .target2_bg0 = true,
+        .target2_bg1 = true,
+        .target2_bg2 = true,
+        .target2_bg3 = true,
+    };
 
     // 50/50
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
+    ::BLDALPHA = {0.5f, 0.5f};
 
     // no effect
-    reg::bldy::write(0.5f);
+    mmio::BLDY = 0.5f;
 
     palette_ram[0] = 0x4210;
 
@@ -173,28 +168,25 @@ void display_blend_mode1_all() {
 void display_blend_mode1_add() {
     // blend mode 1 == alpha blend
     // both factors set to 1 to add
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true, // not enabled so ignored
-        .src_bg1 = true,
-        .mode = blend_mode::alpha,
-        .dst_bg2 = true,
-    });
+        .show_bg1 = true,
+        .show_bg2 = true,
+    };
+
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true, // not enabled so ignored
+        .target1_bg1 = true,
+        .mode = color_effect::alpha_blend,
+        .target2_bg2 = true,
+    };
 
     // 50/50
-    reg::bldalpha::write({
-        .eva = 1,
-        .evb = 1,
-    });
+    ::BLDALPHA = {1.0f, 1.0f};
 
     // no effect
-    reg::bldy::write(0.5f);
+    mmio::BLDY = 0.5f;
 
     palette_ram[0] = 0x4210;
 
@@ -206,24 +198,21 @@ void display_blend_mode1_add() {
 void display_blend_mode1_reversed() {
     // blend mode 1 == alpha blend
     // layers in wrong order
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg2 = true,
-        .mode = blend_mode::alpha,
-        .dst_bg1 = true,
-    });
+        .show_bg1 = true,
+        .show_bg2 = true,
+    };
+
+    mmio::BLDCNT = bldcnt {
+        .target1_bg2 = true,
+        .mode = color_effect::alpha_blend,
+        .target2_bg1 = true,
+    };
 
     // 50/50
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
+    ::BLDALPHA = {0.5f, 0.5f};
 
     palette_ram[0] = 0x4210;
 
@@ -235,23 +224,20 @@ void display_blend_mode1_reversed() {
 void display_blend_mode1_no_second() {
     // blend mode 1 == alpha blend
     // missing dest
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg1 = true,
-        .mode = blend_mode::alpha,
-    });
+        .show_bg1 = true,
+        .show_bg2 = true,
+    };
+
+    mmio::BLDCNT = bldcnt {
+        .target1_bg1 = true,
+        .mode = color_effect::alpha_blend,
+    };
 
     // 50/50
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
+    ::BLDALPHA = {0.5f, 0.5f};
 
     palette_ram[0] = 0x4210;
 
@@ -263,25 +249,22 @@ void display_blend_mode1_no_second() {
 void display_blend_mode1_between() {
     // blend mode 1 == alpha blend
     // layer inbetween the two blended layers
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true,
-        .mode = blend_mode::alpha,
-        .dst_bg2 = true,
-    });
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+    };
+
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true,
+        .mode = color_effect::alpha_blend,
+        .target2_bg2 = true,
+    };
 
     // 50/50
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
+    ::BLDALPHA = {0.5f, 0.5f};
 
     palette_ram[0] = 0x4210;
 
@@ -295,98 +278,92 @@ void display_blend_mode1_objects() {
     // objects don't blend with each other
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_1 = true,
-        .layer_object = true,
-    });
-
-    reg::bldcnt::write(blend_control {
-        .src_obj = true,
-        .mode = blend_mode::alpha,
-        
-        .dst_bg1 = true,
-        .dst_obj = true
-    });
-
-    // 50/50
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
-
-    // sprites
-    object_regular obj {
-        {.y = 32},
-        {.x = 32, .size = 2},
-        {.tile_index = 10}
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg1 = true,
+        .show_obj = true,
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    mmio::BLDCNT = bldcnt {
+        .target1_obj = true,
+        .mode = color_effect::alpha_blend,
+
+        .target2_bg1 = true,
+        .target2_obj = true
+    };
+
+    // 50/50
+    ::BLDALPHA = {0.5f, 0.5f};
+
+    // sprites
+    objattr obj {
+        {.y = 32},
+        {.x = 32, .size = 2},
+        {.tile_id = 10}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     // same priority
-    obj.attr0.y += 8;
-    obj.attr1.x += 8;
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+    obj.y += 8;
+    obj.x += 8;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
 
     // lower priority, but still above the background
-    obj.attr0.y += 8;
-    obj.attr1.x += 8;
-    obj.attr2.priority = 1;
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
+    obj.y += 8;
+    obj.x += 8;
+    obj.priority = 1;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
 
     // behind the background
-    obj.attr0.y += 8;
-    obj.attr1.x += 8;
-    obj.attr2.priority = 2;
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000018), &obj, sizeof(obj));
+    obj.y += 8;
+    obj.x += 8;
+    obj.priority = 2;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000018), &obj, sizeof(obj));
 
     // hide the rest
-    obj.attr0.y = 160;
+    obj.y = 160;
     for(int i = 4; i < 128; i++)
-        agbabi::memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
+        __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
 
     palette_ram[0] = 0x4210;
 
     setup_layers();
 
     // adjust layer priority
-    reg::bg1cnt::write(background_control {
+    mmio::BG1CNT = {
         .priority = 1,
-        .screen_base_block = 3
-    });
+        .screenblock = 3
+    };
 
     wait_for_exit();
 }
 
 void display_blend_mode2() {
     // blend mode 2 == brighter
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true,
-        .src_bg1 = true,
-        .mode = blend_mode::white,
-        .dst_bg0 = true, // ... unused for mode 2
-        .dst_bg1 = true,
-        .dst_backdrop = true
-    });
+        .show_bg1 = true,
+        .show_bg2 = true,
+    };
+
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true,
+        .target1_bg1 = true,
+        .mode = color_effect::brighten,
+        .target2_bg0 = true, // ... unused for mode 2
+        .target2_bg1 = true,
+        .target2_backdrop = true
+    };
 
     // pointless
-    reg::bldalpha::write({
-        .eva = 1,
-        .evb = 1,
-    });
+    ::BLDALPHA = {1.0f, 1.0f};
 
-    reg::bldy::write(0.5f);
+    mmio::BLDY = 0.5f;
 
     palette_ram[0] = 0x4210;
 
@@ -398,22 +375,19 @@ void display_blend_mode2() {
 void display_blend_mode2_backdrop() {
     // blend mode 2 == brighter
     // just the backdrop
-    reg::dispcnt::write({
-        .mode = 0,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+    };
 
-    reg::bldcnt::write(blend_control {
-        .src_backdrop = true,
-        .mode = blend_mode::white,
-    });
+    mmio::BLDCNT = bldcnt {
+        .target1_backdrop = true,
+        .mode = color_effect::brighten,
+    };
 
     // pointless
-    reg::bldalpha::write({
-        .eva = 1,
-        .evb = 1,
-    });
+    ::BLDALPHA = {1.0f, 1.0f};
 
-    reg::bldy::write(0.5f);
+    mmio::BLDY = 0.5f;
 
     palette_ram[0] = 0x4210;
 
@@ -424,29 +398,25 @@ void display_blend_mode2_backdrop() {
 
 void display_blend_mode3() {
     // blend mode 3 == darker
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg1 = true,
+        .show_bg2 = true,
+    };
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true,
-        .src_bg1 = true,
-        .mode = blend_mode::black,
-        .dst_bg0 = true, // ... unused for mode 3
-        .dst_bg1 = true,
-        .dst_bg2 = true,
-    });
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true,
+        .target1_bg1 = true,
+        .mode = color_effect::darken,
+        .target2_bg0 = true, // ... unused for mode 3
+        .target2_bg1 = true,
+        .target2_bg2 = true,
+    };
 
     // pointless
-    reg::bldalpha::write({
-        .eva = 1,
-        .evb = 1,
-    });
+    ::BLDALPHA = {1.0f, 1.0f};
 
-    reg::bldy::write(0.5f);
+    mmio::BLDY = 0.5f;
 
     palette_ram[0] = 0x4210;
 
@@ -458,22 +428,19 @@ void display_blend_mode3() {
 void display_blend_mode3_backdrop() {
     // blend mode 3 == darker
     // just the backdrop
-    reg::dispcnt::write({
-        .mode = 0,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+    };
 
-    reg::bldcnt::write(blend_control {
-        .src_backdrop = true,
-        .mode = blend_mode::black,
-    });
+    mmio::BLDCNT = bldcnt {
+        .target1_backdrop = true,
+        .mode = color_effect::darken,
+    };
 
     // pointless
-    reg::bldalpha::write({
-        .eva = 1,
-        .evb = 1,
-    });
+    ::BLDALPHA = {1.0f, 1.0f};
 
-    reg::bldy::write(0.25f);
+    mmio::BLDY = 0.25f;
 
     palette_ram[0] = 0x4210;
 
@@ -484,84 +451,68 @@ void display_blend_mode3_backdrop() {
 
 void display_blend_window() {
     // load sprites, but don't bother with the palette
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
 
     // enable ALL the windows
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-        .layer_object = true,
-        .window_0 = true,
-        .window_1 = true,
-        .window_object = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+        .enable_obj_win = true
+    };
 
-    reg::bldcnt::write(blend_control {
-        .src_bg0 = true,
-        .src_bg1 = true,
-        .src_bg2 = true,
-        .src_bg3 = true,
-        .mode = blend_mode::alpha,
-        
-        .dst_bg1 = true,
-        .dst_bg2 = true,
-        .dst_bg3 = true,
-        .dst_backdrop = true,
-    });
+    mmio::BLDCNT = bldcnt {
+        .target1_bg0 = true,
+        .target1_bg1 = true,
+        .target1_bg2 = true,
+        .target1_bg3 = true,
+        .mode = color_effect::alpha_blend,
+
+        .target2_bg1 = true,
+        .target2_bg2 = true,
+        .target2_bg3 = true,
+        .target2_backdrop = true,
+    };
 
     // 50/50
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
+    ::BLDALPHA = {0.5f, 0.5f};
 
-    reg::win0h::write({
-        .end = 140,
-        .begin = 10,
-    });
+    mmio::WIN0H = u8x2{140 - 1, 10};
+    mmio::WIN0V = u8x2{100 - 1, 10};
 
-    reg::win0v::write({
-        .end = 100,
-        .begin = 10,
-    });
+    mmio::WIN1H = u8x2{240 - 20 - 1, 15};
+    mmio::WIN1V = u8x2{160 - 20 - 1, 30};
 
-    reg::win1h::write({
-        .end = 240 - 20,
-        .begin = 15,
-    });
-
-    reg::win1v::write({
-        .end = 160 - 20,
-        .begin = 30,
-    });
-
-    reg::winin::write({
+    mmio::WININ = {
         .win0_bg0 = true,
         .win0_bg3 = true,
-        .win0_blend = true,
-        .win1_bg2 = true,
-    });
+        .win0_effect = true,
 
-    reg::winout::write({
-        .win0_bg0 = true,
+        .win1_bg2 = true,
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
 
         // this is the obj window
-        .win1_bg1 = true,
-        .win1_blend = true
-    });
+        .obj_win_bg1 = true,
+        .obj_win_effect = true
+    };
 
     palette_ram[0] = 0x4210;
 
-    object_regular obj {
-        {.y = 5, .gfx_mode = object::gfx_mode::windowed},
+    objattr obj {
+        {.y = 5, .mode = obj_effect::window},
         {.x = 100, .size = 3},
-        {.tile_index = 20}
+        {.tile_id = 20}
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     setup_layers();
 
@@ -572,48 +523,45 @@ void display_blend_object_trans() {
     // semi-transparent object overrides blend mode
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg1 = true,
-        .src_obj = true,
-        .mode = blend_mode::black,
-        .dst_bg1 = true, // used for sprite transparency
-    });
-
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
-
-    reg::bldy::write(0.75f);
-
-    // sprites
-    object_regular obj {
-        {.y = 32},
-        {.x = 32, .size = 2},
-        {.tile_index = 10}
+        .show_bg1 = true,
+        .show_obj = true,
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    mmio::BLDCNT = bldcnt {
+        .target1_bg1 = true,
+        .target1_obj = true,
+        .mode = color_effect::darken,
+        .target2_bg1 = true, // used for sprite transparency
+    };
+
+    ::BLDALPHA = {0.5f, 0.5f};
+
+    mmio::BLDY = 0.75f;
+
+    // sprites
+    objattr obj {
+        {.y = 32},
+        {.x = 32, .size = 2},
+        {.tile_id = 10}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     // blended
-    obj.attr0.gfx_mode = object::gfx_mode::blending;
-    obj.attr1.x += 40;
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+    obj.mode = obj_effect::semi_transparent;
+    obj.x += 40;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
 
     // hide the rest
-    obj.attr0.y = 160;
+    obj.y = 160;
     for(int i = 2; i < 128; i++)
-        agbabi::memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
+        __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
 
     palette_ram[0] = 0x4210;
 
@@ -626,48 +574,45 @@ void display_blend_object_trans_enable() {
     // semi-transparent object overrides blend mode, enabling it
 
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg1 = true,
-        .src_obj = true,
-        .mode = blend_mode::off,
-        .dst_bg1 = true, // used for sprite transparency
-    });
-
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
-
-    reg::bldy::write(0.75f);
-
-    // sprites
-    object_regular obj {
-        {.y = 32},
-        {.x = 32, .size = 2},
-        {.tile_index = 10}
+        .show_bg1 = true,
+        .show_obj = true,
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    mmio::BLDCNT = bldcnt {
+        .target1_bg1 = true,
+        .target1_obj = true,
+        .mode = color_effect::no_effect,
+        .target2_bg1 = true, // used for sprite transparency
+    };
+
+    ::BLDALPHA = {0.5f, 0.5f};
+
+    mmio::BLDY = 0.75f;
+
+    // sprites
+    objattr obj {
+        {.y = 32},
+        {.x = 32, .size = 2},
+        {.tile_id = 10}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
     // blended
-    obj.attr0.gfx_mode = object::gfx_mode::blending;
-    obj.attr1.x += 40;
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+    obj.mode = obj_effect::semi_transparent;
+    obj.x += 40;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
 
     // hide the rest
-    obj.attr0.y = 160;
+    obj.y = 160;
     for(int i = 2; i < 128; i++)
-        agbabi::memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
+        __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
 
     palette_ram[0] = 0x4210;
 
@@ -678,71 +623,68 @@ void display_blend_object_trans_enable() {
 
 void display_blend_object_trans_priority() {
     // load sprites
-    agbabi::memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
-    agbabi::memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, sizeof(sprites_palette));
 
-    reg::dispcnt::write({
-        .mode = 0,
-        
-        .layer_background_1 = true,
-        .layer_object = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
 
-    reg::bldcnt::write(blend_control {
-        .src_bg1 = true,
-        .src_obj = true,
-        .mode = blend_mode::black,
-        .dst_bg1 = true, // used for sprite transparency
-    });
-
-    reg::bldalpha::write({
-        .eva = 0.5f,
-        .evb = 0.5f,
-    });
-
-    reg::bldy::write(0.75f);
-
-    // sprites
-    object_regular obj {
-        {.y = 32},
-        {.x = 32, .size = 2},
-        {.tile_index = 10}
+        .show_bg1 = true,
+        .show_obj = true,
     };
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+    mmio::BLDCNT = bldcnt {
+        .target1_bg1 = true,
+        .target1_obj = true,
+        .mode = color_effect::darken,
+        .target2_bg1 = true, // used for sprite transparency
+    };
+
+    ::BLDALPHA = {0.5f, 0.5f};
+
+    mmio::BLDY = 0.75f;
+
+    // sprites
+    objattr obj {
+        {.y = 32},
+        {.x = 32, .size = 2},
+        {.tile_id = 10}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
 
 
     // blended (partially covered)
-    obj.attr0.gfx_mode = object::gfx_mode::blending;
-    obj.attr1.x += 16;
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+    obj.mode = obj_effect::semi_transparent;
+    obj.x += 16;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
 
     // and again with different priorities
-    obj.attr0.y += 40;
-    obj.attr2.priority = 1;
+    obj.y += 40;
+    obj.priority = 1;
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000018), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000018), &obj, sizeof(obj));
 
-    obj.attr0.gfx_mode = object::gfx_mode::normal;
-    obj.attr1.x -= 16;
-    obj.attr2.priority = 0;
+    obj.mode = obj_effect::normal;
+    obj.x -= 16;
+    obj.priority = 0;
 
-    agbabi::memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
 
     // hide the rest
-    obj.attr0.y = 160;
+    obj.y = 160;
     for(int i = 4; i < 128; i++)
-        agbabi::memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
+        __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000 + i * 8), &obj, sizeof(obj));
 
     palette_ram[0] = 0x4210;
 
     setup_layers();
 
     // adjust layer priority
-    reg::bg1cnt::write(background_control {
+    mmio::BG1CNT = {
         .priority = 1,
-        .screen_base_block = 3
-    });
+        .screenblock = 3
+    };
 
     wait_for_exit();
 }

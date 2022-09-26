@@ -1,5 +1,5 @@
 #include <gba/gba.hpp>
-#include <gba/ext/agbabi.hpp>
+#include <gba/ext/agbabi/agbabi.hpp>
 
 #include "../common.hpp"
 
@@ -9,7 +9,7 @@ using namespace gba;
 void display_layer_none() {
 
     // nothing enabled
-    reg::dispcnt::write({});
+    mmio::DISPCNT = {};
 
     // should get backdrop
     palette_ram[0] = 0x7C10;
@@ -29,18 +29,18 @@ void display_cgb_mode() {
     clear_text();
     palette_ram[1] = 0x1F;
 
+    auto raw_dispcnt = (volatile uint16_t *)&mmio::DISPCNT;
+
     // shouldn't be set for AGB mode
-    if(reg::dispcnt::read().color_game_boy) {
+    if(*raw_dispcnt & (1 << 3)) {
         write_text(0, 0, "CGB mode is set!");
         return wait_for_exit();
     }
 
     // shouldn't be writable outside BIOS
-    auto dispcnt = reg::dispcnt::read();
-    dispcnt.color_game_boy = true;
-    reg::dispcnt::write(dispcnt);
+    *raw_dispcnt = *raw_dispcnt | 1 << 3;
 
-    if(reg::dispcnt::read().color_game_boy) {
+    if(*raw_dispcnt & (1 << 3)) {
         write_text(0, 1, "CGB mode is writable!");
         return wait_for_exit();
     }
@@ -56,42 +56,40 @@ void display_forced_blank() {
     write_text(0, 10, "     That didn't work...     ");
 
     // should blank screen (to white)
-    auto dispcnt = reg::dispcnt::read();
-    dispcnt.force_blank = true;
-    reg::dispcnt::write({dispcnt});
+    mmio::DISPCNT->forced_blank = true;
 
     wait_for_exit();
 }
 
 void display_priority_default() {
     // all four "text" layers
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-        .layer_background_1 = true,
-        .layer_background_2 = true,
-        .layer_background_3 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+    };
 
-    reg::bg0cnt::write(background_control {
-        .character_base_block = 0,
-        .screen_base_block = 1,
-    });
+    mmio::BG0CNT = {
+        .charblock = 0,
+        .screenblock = 1,
+    };
 
-    reg::bg1cnt::write(background_control {
-        .character_base_block = 0,
-        .screen_base_block = 2,
-    });
+    mmio::BG1CNT = {
+        .charblock = 0,
+        .screenblock = 2,
+    };
 
-    reg::bg2cnt::write(background_control {
-        .character_base_block = 0,
-        .screen_base_block = 3,
-    });
+    mmio::BG2CNT = {
+        .charblock = 0,
+        .screenblock = 3,
+    };
 
-    reg::bg3cnt::write(background_control {
-        .character_base_block = 0,
-        .screen_base_block = 4,
-    });
+    mmio::BG3CNT = {
+        .charblock = 0,
+        .screenblock = 4,
+    };
 
     // palette
     palette_ram[0] = 0x4210;
@@ -101,10 +99,10 @@ void display_priority_default() {
     palette_ram[4] = 0x7FE0;
 
     // fill each layer with a single tile
-    agbabi::wordset4(video_ram + 0x0400, 0x800, 0x00010001);
-    agbabi::wordset4(video_ram + 0x0800, 0x800, 0x00020002);
-    agbabi::wordset4(video_ram + 0x0C00, 0x800, 0x00030003);
-    agbabi::wordset4(video_ram + 0x1000, 0x800, 0x00040004);
+    __agbabi_wordset4(video_ram + 0x0400, 0x800, 0x00010001);
+    __agbabi_wordset4(video_ram + 0x0800, 0x800, 0x00020002);
+    __agbabi_wordset4(video_ram + 0x0C00, 0x800, 0x00030003);
+    __agbabi_wordset4(video_ram + 0x1000, 0x800, 0x00040004);
 
     // generate some tiles
     int i = 0;
@@ -135,10 +133,17 @@ void display_priority_default() {
 static uint16_t stat_hblank_irq[228]{};
 static uint16_t stat_hblank_dma[228]{};
 
-static void irq_handler(interrupt_mask mask) {
-    if(mask.hblank) {
-        stat_hblank_irq[reg::vcount::read()] = *reinterpret_cast<volatile uint16_t *>(reg::dispstat::address);
+static const int dispstat_addr = 0x4000004;
+
+static void irq_handler(int mask) {
+    if(mask & (1 << 1)/*hblank*/) {
+        stat_hblank_irq[*mmio::VCOUNT] = *reinterpret_cast<volatile uint16_t *>(dispstat_addr);
     }
+}
+
+// workaround irq handler assignment getting optimised out
+[[gnu::noinline]] static void clear_irq_handler() {
+    mmio::IRQ_HANDLER = agbabi::irq_empty;
 }
 
 void display_stat_flags() {
@@ -146,79 +151,79 @@ void display_stat_flags() {
     // and when hblank interrupts/dma happen
     uint16_t stat[228]{};
 
-    reg::dispstat::write({
-        .vblank_irq = true,
+    mmio::DISPSTAT = {
+        .irq_vblank = true,
         .vcount_setting = 123 // set to something
-    });
+    };
 
     // read DISPSTAT on every line
     for(int i = 0; i < 228; i++) {
-        while(reg::vcount::read() != i);
+        while(*mmio::VCOUNT != i);
 
         // keep reading until we reach the next line
         // (trying to catch h-blank)
-        auto v = *reinterpret_cast<volatile uint16_t *>(reg::dispstat::address);
-        while(reg::vcount::read() == i) {
+        auto v = *reinterpret_cast<volatile uint16_t *>(dispstat_addr);
+        while(*mmio::VCOUNT == i) {
             stat[i] = v;
-            v = *reinterpret_cast<volatile uint16_t *>(reg::dispstat::address);
+            v = *reinterpret_cast<volatile uint16_t *>(dispstat_addr);
         }
     }
 
     // now check using hblank interrupts
     memset(stat_hblank_irq, 0, sizeof(stat_hblank_irq));
 
-    agbabi::interrupt_handler::set(irq_handler);
+    mmio::IRQ_HANDLER = agbabi::irq_user(irq_handler);
 
-    reg::dispstat::write({
-        .vblank_irq = true,
-        .hblank_irq = true,
+    mmio::DISPSTAT = {
+        .irq_vblank = true,
+        .irq_hblank = true,
         .vcount_setting = 123 // set to something
-    });
+    };
 
-    reg::ie::write({
+    mmio::IE = {
         .vblank = true,
         .hblank = true,
-    });
+    };
 
     // wait for a frame
-    while(reg::vcount::read() != 0);
-    while(reg::vcount::read() == 0);
-    while(reg::vcount::read() != 0);
+    while(*mmio::VCOUNT != 0);
+    while(*mmio::VCOUNT == 0);
+    while(*mmio::VCOUNT != 0);
 
-    agbabi::interrupt_handler::set(nullptr);
+    clear_irq_handler();
 
     // and hblank dma
     memset(stat_hblank_dma, 0, sizeof(stat_hblank_dma));
 
-    reg::dma0sad::write(reg::dispstat::address);
-    reg::dma0dad::write(reinterpret_cast<uint32_t>(stat_hblank_dma));
-    reg::dma0cnt_l::write(1);
+    mmio::DMA0_SRC = reinterpret_cast<void *>(dispstat_addr);
+    mmio::DMA0_DEST = stat_hblank_dma;
+    mmio::DMA0_COUNT = 1;
 
-    while(reg::vcount::read() != 227);
+    while(*mmio::VCOUNT != 227);
 
-    reg::dma0cnt_h::write(dma_control {
-        .destination_control = dma_control::destination_address::increment,
-        .source_control = dma_control::source_address::fixed,
+    mmio::DMA0_CONTROL = dmacnt_h {
+        .dest_control = dest_addr::increment,
+        .src_control = src_addr::fixed,
         .repeat = true,
-        .type = dma_control::type::half,
-        .start_condition = dma_control::start::next_hblank,
-        .enable = true
-    });
+        .transfer_32bit = false,
+        .start_time = start::hblank,
+        .enabled = true
+    };
 
     // wait for a frame
-    while(reg::vcount::read() != 0);
-    while(reg::vcount::read() == 0);
-    while(reg::vcount::read() != 0);
+    while(*mmio::VCOUNT != 0);
+    while(*mmio::VCOUNT == 0);
+    while(*mmio::VCOUNT != 0);
 
-    reg::dma0cnt_h::write({});
+    mmio::DMA0_CONTROL.reset();
 
     // now put something on the screen
-    reg::dispcnt::write({
-        .mode = 3,
-        .layer_background_2 = true
-    });
+    mmio::DISPCNT = {
+        .video_mode = 3,
+        .show_bg2 = true
+    };
 
-    agbabi::wordset4(video_ram, 240 * 160 * 2, 0);
+    __agbabi_wordset4(video_ram, 240 * 160 * 2, 0);
 
     for(int i = 0; i < 228; i++) {
         video_ram[i + 0 * 240] = (stat[i] & (1 << 0)) ? 0x03E0 : 0x001F;

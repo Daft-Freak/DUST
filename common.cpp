@@ -1,11 +1,11 @@
 #include <gba/gba.hpp>
-#include <gba/ext/agbabi.hpp>
+#include <gba/ext/agbabi/agbabi.hpp>
 
 #include "common.hpp"
 
 void clear_text() {
     // clear char block 2-3
-    gba::agbabi::wordset4(video_ram + 0x800, 0x800 * 2, 0);
+    __agbabi_wordset4(video_ram + 0x800, 0x800 * 2, 0);
 }
 
 void write_text(int x, int y, const char *text) {
@@ -18,11 +18,11 @@ void write_text(int x, int y, const char *text) {
 
 void wait_for_exit() {
     while(true) {
-        keypad_man.poll();
+        keypad_man = *gba::mmio::KEYINPUT;
 
-        gba::bios::vblank_intr_wait();
+        gba::bios::VBlankIntrWait();
 
-        if(keypad_man.switched_up(gba::key::button_b))
+        if(keypad_man.released(gba::key::b))
             return;
     }
 }
@@ -53,7 +53,7 @@ void gen_affine_tiles(uint16_t *char_base, uint16_t *screen_base, int screen_siz
             a, b, a, a, a, a, b, a,
             b, a, a, a, a, a, a, b,
         };
-        gba::agbabi::memcpy2(char_base + i * 32, tile, 64);
+        __agbabi_memcpy2(char_base + i * 32, tile, 64);
     }
 
     for(int y = 0; y < screen_size_tiles; y++) {

@@ -1,13 +1,13 @@
 
 #include <gba/gba.hpp>
-#include <gba/ext/agbabi.hpp>
+#include <gba/ext/agbabi/agbabi.hpp>
 
 #include "assets/8x8font.h"
 #include "common.hpp"
 
 using namespace gba;
 
-io::keypad_manager keypad_man;
+keystate keypad_man;
 
 // hack to drop unwind code, removing ~6k from the output
 // seems to be getting pulled in from irq.s...
@@ -17,12 +17,12 @@ static void load_font() {
     palette_ram[0] = 0;
     palette_ram[1] = 0x7FFF;
 
-    static const bios::bit_un_pack_input unpack {
-        .size = sizeof(font8x8_char_data_1bpp),
-        .source_width = bios::un_pack_bits::_1,
-        .destination_width = bios::un_pack_bits::_4
+    static const bios::bit_un_pack unpack {
+        .src_len = sizeof(font8x8_char_data_1bpp),
+        .src_bpp = 1,
+        .dst_bpp = 4
     };
-    bios::bit_un_pack(font8x8_char_data_1bpp, video_ram, &unpack);
+    bios::BitUnPack(font8x8_char_data_1bpp, video_ram, &unpack);
 }
 
 struct test_info {
@@ -229,22 +229,21 @@ static const std::array dma_tests {
 };
 
 static void init_display() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
 
-    reg::bg0cnt::write(background_control {
-        .character_base_block = 0,
-        .color_depth = color_depth::bpp_4,
-        .screen_base_block = 2,
-        .screen_size = screen_size::regular_32x64
-    });
+    mmio::BG0CNT = {
+        .charblock = 0,
+        .screenblock = 2,
+        .size = 2 // 32x64
+    };
 
-    reg::bg0hofs::write(0);
-    reg::bg0vofs::write(0);
+    mmio::BG0HOFS.reset();
+    mmio::BG0VOFS.reset();
 
-    reg::bldcnt::write({});
+    mmio::BLDCNT.reset();
 
     load_font();
 }
@@ -266,28 +265,28 @@ static void test_list(const auto &tests) {
     draw_menu(tests);
 
     while(true) {
-        keypad_man.poll();
+        keypad_man = *gba::mmio::KEYINPUT;
 
-        bios::vblank_intr_wait();
+        bios::VBlankIntrWait();
 
-        if(keypad_man.any_switched_down(key_mask::make(key::up, key::down))) {
+        if(keypad_man.pressed(key::up) || keypad_man.pressed(key::down)) {
             write_text(1, item + 3, " ");
 
-            int32_t num_tests = std::size(tests);
-            item = std::max(0l, std::min(num_tests - 1, item + keypad_man.axis_y()));
+            int num_tests = std::size(tests);
+            item = std::max(0, std::min(num_tests - 1, item - keypad_man.yaxis()));
         }
 
-        if(keypad_man.switched_up(key::button_a)) {
+        if(keypad_man.released(key::a)) {
             tests[item].func();
             init_display(); // reload after test
             draw_menu(tests);
         }
         // return to previous menu
-        else if(keypad_man.switched_up(gba::key::button_b))
+        else if(keypad_man.released(key::b))
             return;
 
         // scroll to current item
-        reg::bg0vofs::write(std::max(0, (item + 3) * 8 - 80));
+        mmio::BG0VOFS = std::max(0, (item + 3) * 8 - 80);
 
         write_text(1, item + 3, ">");
     }
@@ -323,9 +322,11 @@ static void dma_test_list() {
 }
 
 int main(int argc, char * argv[]) {
-    reg::dispstat::write({.vblank_irq = true});
-    reg::ie::write({.vblank = true});
-    reg::ime::emplace(true);
+    mmio::IRQ_HANDLER = agbabi::irq_empty;
+
+    mmio::DISPSTAT = {.irq_vblank = true};
+    mmio::IE = {.vblank = true};
+    mmio::IME = true;
 
     init_display();
 

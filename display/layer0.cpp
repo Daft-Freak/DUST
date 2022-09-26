@@ -7,21 +7,21 @@ using namespace gba;
 // layer0, always "text" (mode 0-1)
 
 void display_layer0_char_base() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
-    reg::bg0cnt::write(background_control {
-        .character_base_block = 1,
-        .screen_base_block = 2,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
+    mmio::BG0CNT = {
+        .charblock = 1,
+        .screenblock = 2,
+    };
 
     clear_text();
 
     // copy font data
-    agbabi::memcpy2(video_ram + 0x2000, video_ram, 0x4000);
+    __agbabi_memcpy2(video_ram + 0x2000, video_ram, 0x4000);
     // erase font data in block 0
-    agbabi::wordset4(video_ram, 0x4000, 0);
+    __agbabi_wordset4(video_ram, 0x4000, 0);
 
     write_text(3, 10, "Hello from char block 1!");
 
@@ -29,13 +29,13 @@ void display_layer0_char_base() {
 }
 
 void display_layer0_4bpp() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
 
     // setup minimal 4bpp layer (everything zeroed)
-    reg::bg0cnt::write({});
+    mmio::BG0CNT = {};
 
     // setup some colours
 
@@ -62,15 +62,15 @@ void display_layer0_4bpp() {
 }
 
 void display_layer0_8bpp() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
 
     // setup minimal 8bpp layer (everything else zeroed)
-    reg::bg0cnt::write({
-        .color_depth = color_depth::bpp_8
-    });
+    mmio::BG0CNT = {
+        .bpp8 = true
+    };
 
     // setup some colours
     palette_ram[17] = 0x0010;
@@ -94,16 +94,16 @@ void display_layer0_8bpp() {
     wait_for_exit();
 }
 
-static void size_test(screen_size size, uint16_t mode = 0) {
-    reg::dispcnt::write({
-        .mode = mode,
-        .layer_background_0 = true,
-    });
+static void size_test(uint16_t size, uint16_t mode = 0) {
+    mmio::DISPCNT = {
+        .video_mode = mode,
+        .show_bg0 = true,
+    };
 
-    reg::bg0cnt::write(background_control {
-        .screen_base_block = 2,
-        .screen_size = size
-    });
+    mmio::BG0CNT = {
+        .screenblock = 2,
+        .size = size
+    };
 
     palette_ram[1] = 0x03F0;
     palette_ram[2] = 0x001F;
@@ -115,10 +115,10 @@ static void size_test(screen_size size, uint16_t mode = 0) {
     palette_ram[8] = 0x4008;
 
     // fill each block with a digit
-    agbabi::wordset4(video_ram + 0x0800, 0x800, 0x00100010);
-    agbabi::wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
-    agbabi::wordset4(video_ram + 0x1000, 0x800, 0x00120012);
-    agbabi::wordset4(video_ram + 0x1400, 0x800, 0x00130013);
+    __agbabi_wordset4(video_ram + 0x0800, 0x800, 0x00100010);
+    __agbabi_wordset4(video_ram + 0x0C00, 0x800, 0x00110011);
+    __agbabi_wordset4(video_ram + 0x1000, 0x800, 0x00120012);
+    __agbabi_wordset4(video_ram + 0x1400, 0x800, 0x00130013);
 
     // adjust font colours
     // 0/1 -> 1/2, 3/4, 5/6, 7/8
@@ -130,74 +130,74 @@ static void size_test(screen_size size, uint16_t mode = 0) {
     }
 
     // scroll so that edge is in the middle of the screen
-    reg::bg0hofs::emplace(int16_t(256 - 120));
-    reg::bg0vofs::emplace(int16_t(256 - 80));
+    mmio::BG0HOFS = 256 - 120;
+    mmio::BG0VOFS = 256 - 80;
 
     wait_for_exit();
 }
 
 void display_layer0_size0() {
-    size_test(screen_size::regular_32x32);
+    size_test(0);
 }
 
 void display_layer0_size1() {
-    size_test(screen_size::regular_64x32);
+    size_test(1);
 }
 
 void display_layer0_size2() {
-    size_test(screen_size::regular_32x64);
+    size_test(2);
 }
 
 void display_layer0_size3() {
-    size_test(screen_size::regular_64x64);
+    size_test(3);
 }
 
 void display_layer0_flip() {
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
 
-    reg::bg0cnt::write(background_control {
-        .screen_base_block = 2,
-    });
+    mmio::BG0CNT = {
+        .screenblock = 2,
+    };
 
     // make a pattern from the '/' character
     for(int i = 0; i < 32; i+= 2) {
-        agbabi::wordset4(video_ram + 0x0800 + (i + 0) * 32, 32 * 2, 0x040F000F);
-        agbabi::wordset4(video_ram + 0x0800 + (i + 1) * 32, 32 * 2, 0x0C0F080F);
+        __agbabi_wordset4(video_ram + 0x0800 + (i + 0) * 32, 32 * 2, 0x040F000F);
+        __agbabi_wordset4(video_ram + 0x0800 + (i + 1) * 32, 32 * 2, 0x0C0F080F);
     }
 
-    reg::bg0hofs::write(0);
-    reg::bg0vofs::write(0);
+    mmio::BG0HOFS = 0;
+    mmio::BG0VOFS = 0;
 
     wait_for_exit();
 }
 
 // same as mode 0
 void display_layer0_mode1() {
-    size_test(screen_size::regular_64x64, 1);
+    size_test(3, 1);
 }
 
 // not used in these modes
 void display_layer0_mode2() {
     palette_ram[0] = 0x7FFF;
-    size_test(screen_size::regular_64x64, 2);
+    size_test(3, 2);
 }
 
 void display_layer0_mode3() {
     palette_ram[0] = 0x7FFF;
-    size_test(screen_size::regular_64x64, 3);
+    size_test(3, 3);
 }
 
 void display_layer0_mode4() {
     palette_ram[0] = 0x7FFF;
-    size_test(screen_size::regular_64x64, 4);
+    size_test(3, 4);
 }
 
 void display_layer0_mode5() {
     palette_ram[0] = 0x7FFF;
-    size_test(screen_size::regular_64x64, 5);
+    size_test(3, 5);
 }
 
 // now for the tests that do Bad Things(TM)
@@ -205,59 +205,59 @@ void display_layer0_mode5() {
 // GBA hardware has some "interesting" behaviour for these, DS just reads 0s
 void display_layer0_char_base_invalid() {
     // sets char base to 0xC000, causing some tiles to be in the sprite area
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
 
-    reg::bg0cnt::write(background_control {
-        .character_base_block = 3,
-        .screen_base_block = 0,
-    });
+    mmio::BG0CNT =  {
+        .charblock = 3,
+        .screenblock = 0,
+    };
 
     // fill entire palette
     for(int i = 0; i < 512; i++)
         palette_ram[i] = (i & 0x7) << 2 | (i & 0x38) << 4 | (i & 0x1C0) << 6;
 
-    agbabi::wordset4(video_ram + 0xC000 / 2, 0x8000, 0x11223344);
+    __agbabi_wordset4(video_ram + 0xC000 / 2, 0x8000, 0x11223344);
 
     //? fill in most of the first 16k
-    agbabi::wordset4(video_ram + 0x400, 0x4000 - 0x800, 0x44332211);
+    __agbabi_wordset4(video_ram + 0x400, 0x4000 - 0x800, 0x44332211);
 
     for(int i = 0; i < 32 * 32; i++)
         video_ram[i] = i;
 
-    reg::bg0hofs::write(0);
-    reg::bg0vofs::write(256 - 160); // scroll to the bottom
+    mmio::BG0HOFS = 0;
+    mmio::BG0VOFS = 256 - 160; // scroll to the bottom
 
     wait_for_exit();
 }
 
 void display_layer0_screen_base_invalid() {
     // two of the screen blocks are in the sprite area
-    reg::dispcnt::write({
-        .mode = 0,
-        .layer_background_0 = true,
-    });
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+    };
 
-    reg::bg0cnt::write(background_control {
-        .screen_base_block = 30,
-        .screen_size = screen_size::regular_64x64
-    });
+    mmio::BG0CNT = {
+        .screenblock = 30,
+        .size = 3
+    };
 
     // fill entire palette
     for(int i = 0; i < 512; i++)
         palette_ram[i] = (i & 0x7) << 2 | (i & 0x38) << 4 | (i & 0x1C0) << 6;
 
     // fill each block with a digit
-    agbabi::wordset4(video_ram + 0x7800, 0x800, 0x00100010);
-    agbabi::wordset4(video_ram + 0x7C00, 0x800, 0x00110011);
-    agbabi::wordset4(video_ram + 0x8000, 0x800, 0x00120012);
-    agbabi::wordset4(video_ram + 0x8400, 0x800, 0x00130013);
+    __agbabi_wordset4(video_ram + 0x7800, 0x800, 0x00100010);
+    __agbabi_wordset4(video_ram + 0x7C00, 0x800, 0x00110011);
+    __agbabi_wordset4(video_ram + 0x8000, 0x800, 0x00120012);
+    __agbabi_wordset4(video_ram + 0x8400, 0x800, 0x00130013);
 
     //put some stuff near the start too
-    //agbabi::wordset4(videoRAM + 0x0000, 0x800, 0x00140014);
-    agbabi::wordset4(video_ram + 0x0400, 0x800, 0x00150015);
+    //__agbabi_wordset4(videoRAM + 0x0000, 0x800, 0x00140014);
+    __agbabi_wordset4(video_ram + 0x0400, 0x800, 0x00150015);
 
     // adjust font colours
     // 0/1 -> 1/2, 3/4, 5/6, 7/8
@@ -269,8 +269,8 @@ void display_layer0_screen_base_invalid() {
     }
 
     // scroll so that edge is in the middle of the screen
-    reg::bg0hofs::emplace(int16_t(256 - 120));
-    reg::bg0vofs::emplace(int16_t(256 - 80));
+    mmio::BG0HOFS = 256 - 120;
+    mmio::BG0VOFS = 256 - 80;
 
     wait_for_exit();
 }
