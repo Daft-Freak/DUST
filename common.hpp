@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <gba/input/key.hpp>
 
-extern gba::keystate keypad_man;
+extern gba::keystate key_state;
 
 inline auto palette_ram = reinterpret_cast<uint16_t *>(0x05000000);
 inline auto video_ram = reinterpret_cast<uint16_t *>(0x06000000);

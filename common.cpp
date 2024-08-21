@@ -18,11 +18,11 @@ void write_text(int x, int y, const char *text) {
 
 void wait_for_exit() {
     while(true) {
-        keypad_man = *gba::mmio::KEYINPUT;
+        key_state = *gba::mmio::KEYINPUT;
 
         gba::bios::VBlankIntrWait();
 
-        if(keypad_man.released(gba::key::b))
+        if(key_state.released(gba::key::b))
             return;
     }
 }

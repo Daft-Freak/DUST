@@ -7,7 +7,7 @@
 
 using namespace gba;
 
-keystate keypad_man;
+keystate key_state;
 
 // hack to drop unwind code, removing ~6k from the output
 // seems to be getting pulled in from irq.s...
@@ -265,24 +265,24 @@ static void test_list(const auto &tests) {
     draw_menu(tests);
 
     while(true) {
-        keypad_man = *gba::mmio::KEYINPUT;
+        key_state = *gba::mmio::KEYINPUT;
 
         bios::VBlankIntrWait();
 
-        if(keypad_man.pressed(key::up) || keypad_man.pressed(key::down)) {
+        if(key_state.pressed(key::up) || key_state.pressed(key::down)) {
             write_text(1, item + 3, " ");
 
             int num_tests = std::size(tests);
-            item = std::max(0, std::min(num_tests - 1, item - keypad_man.yaxis()));
+            item = std::max(0, std::min(num_tests - 1, item - key_state.yaxis()));
         }
 
-        if(keypad_man.released(key::a)) {
+        if(key_state.released(key::a)) {
             tests[item].func();
             init_display(); // reload after test
             draw_menu(tests);
         }
         // return to previous menu
-        else if(keypad_man.released(key::b))
+        else if(key_state.released(key::b))
             return;
 
         // scroll to current item
