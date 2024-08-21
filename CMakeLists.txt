@@ -218,7 +218,28 @@ if(BUILD_SINGLE_TEST_ROMS)
     )
 
     foreach(TEST ${TESTS})
-        add_gba_executable(${CMAKE_PROJECT_NAME}_${TEST} ${SOURCES})
+        # work out where this test lives
+        string(REPLACE "_" ";" SPLIT_TEST ${TEST})
+        list(GET SPLIT_TEST 0 TEST_GROUP)
+        list(GET SPLIT_TEST 1 TEST_SUBGROUP)
+
+        # special case(had to be one...)
+        if(${TEST_GROUP} STREQUAL "display" AND ${TEST_SUBGROUP} STREQUAL "obj")
+            set(TEST_SUBGROUP "objects")
+        endif()
+
+        if(NOT EXISTS ${CMAKE_CURRENT_LIST_DIR}/${TEST_GROUP}/${TEST_SUBGROUP}.cpp)
+            set(TEST_SUBGROUP ${TEST_GROUP}) # fallback to default subgroup
+        endif()
+
+        # build test sources
+        set(TEST_SOURCES
+            ${TEST_GROUP}/${TEST_SUBGROUP}.cpp
+            common.cpp
+            main.cpp
+        )
+
+        add_gba_executable(${CMAKE_PROJECT_NAME}_${TEST} ${TEST_SOURCES})
 
         target_compile_definitions(${CMAKE_PROJECT_NAME}_${TEST} PRIVATE SINGLE_TEST=${TEST})
     endforeach()
