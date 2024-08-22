@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.18)
 project(DUST)
 
 option(BUILD_SINGLE_TEST_ROMS "Build ROMs for each test" OFF)
+option(MULTIBOOT "Build multiboot ROMs" OFF)
 
 #====================
 # ROM information
@@ -26,6 +27,7 @@ set(SOURCES
 )
 
 find_package(librom REQUIRED)
+find_package(libmultiboot REQUIRED)
 find_package(gba-hpp REQUIRED)
 find_package(agbabi REQUIRED)
 
@@ -38,7 +40,13 @@ function(add_gba_executable TARGET_NAME TARGET_SOURCES)
     target_compile_options(${TARGET_NAME} PUBLIC -fdata-sections -ffunction-sections -fno-exceptions -mthumb)
     target_link_options(${TARGET_NAME} PUBLIC -Wl,-Map=${TARGET_NAME}.map,--gc-sections)
 
-    target_link_libraries(${TARGET_NAME} PRIVATE librom agbabi gba-hpp)
+    if(MULTIBOOT)
+        target_link_libraries(${TARGET_NAME} PRIVATE libmultiboot)
+    else()
+        target_link_libraries(${TARGET_NAME} PRIVATE librom)
+    endif()
+
+    target_link_libraries(${TARGET_NAME} PRIVATE agbabi gba-hpp)
 
     set_target_properties(${TARGET_NAME} PROPERTIES
         ROM_TITLE "${ROM_TITLE}"
