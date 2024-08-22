@@ -17,6 +17,12 @@ void write_text(int x, int y, const char *text) {
 }
 
 void wait_for_exit() {
+    // enable link port to check for reset
+    gba::mmio::RCNT.reset();
+    gba::mmio::SIOCNT_MULTI = gba::siocnt_multi {
+        .baud = gba::bps::_115200
+    };
+
     while(true) {
         key_state = *gba::mmio::KEYINPUT;
 
@@ -24,6 +30,9 @@ void wait_for_exit() {
 
         if(key_state.released(gba::key::b))
             return;
+
+        if(*gba::mmio::SIOMULTI0 == 0x5265/* "Re" */)
+            gba::bios::HardReset();
     }
 }
 
