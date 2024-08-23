@@ -769,6 +769,252 @@ void display_obj_regular_8bpp_1d() {
     wait_for_exit();
 }
 
+void display_obj_mixed() {
+    // a mix of 4/8bit, regular/affine
+    palette_ram[0] = 0x4210;
+
+    // load both sets of sprites
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x14000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    // with a hybrid palette
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, 4 * 2);
+
+    setup_affine_params();
+
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
+
+    bool flip_h = false;
+    bool flip_v = false;
+    uint16_t pal_num = 0;
+
+    const int spacing = 10;
+    uint16_t x = spacing, y = spacing;
+
+    // size 0 (4-bit regular)
+
+    // 8x8
+    set_object(0, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .bpp8 = false,
+        .shape = obj_shape::square
+    }, objattr1 {
+        .x = x,
+        .hflip = flip_h,
+        .vflip = flip_v,
+        .size = 0
+    }, objattr2 {
+        .tile_id = 0,
+        .palbank = 0
+    });
+    y += 8 + spacing;
+
+    // 16x8
+    set_object(1, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .bpp8 = false,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
+        .x = x,
+        .hflip = flip_h,
+        .vflip = flip_v,
+        .size = 0
+    }, objattr2 {
+        .tile_id = 1,
+        .palbank = 1
+    });
+
+    y += 8 + spacing;
+
+    // 8x16
+    set_object(2, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .bpp8 = false,
+        .shape = obj_shape::vertical
+    }, objattr1 {
+        .x = x,
+        .hflip = flip_h,
+        .vflip = flip_v,
+        .size = 0
+    }, objattr2 {
+        .tile_id = 32,
+        .palbank = 2
+    });
+
+    y = spacing;
+    x += 16 + spacing;
+
+    // size 1 (8-bit regular)
+
+    // 16x16
+    set_object(3, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .bpp8 = true,
+        .shape = obj_shape::square
+    }, objattr1 {
+        .x = x,
+        .hflip = flip_h,
+        .vflip = flip_v,
+        .size = 1
+    }, objattr2 {
+        .tile_id = 512 + 6,
+    });
+
+    y += 16 + spacing;
+
+    // 32x8
+    set_object(4, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .bpp8 = true,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
+        .x = x,
+        .hflip = flip_h,
+        .vflip = flip_v,
+        .size = 1
+    }, objattr2 {
+        .tile_id = 512 + 10,
+    });
+
+    y += 8 + spacing;
+
+    // 8x32
+    set_object(5, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .bpp8 = true,
+        .shape = obj_shape::vertical
+    }, objattr1 {
+        .x = x,
+        .hflip = flip_h,
+        .vflip = flip_v,
+        .size = 1
+    }, objattr2 {
+        .tile_id = 512 + 18,
+    });
+
+    x += 32 + spacing;
+    y = spacing;
+
+    // size 2 (4-bit affine)
+
+    // 32x32
+    set_object(6, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .bpp8 = false,
+        .shape = obj_shape::square
+    }, objattr1_affine {
+        .x = x,
+        .affine_index = 6,
+        .size = 2
+    }, objattr2 {
+        .tile_id = 10,
+        .palbank = 0
+    });
+
+    y += 32 + spacing;
+
+    // 32x16
+    set_object(7, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .bpp8 = false,
+        .shape = obj_shape::horizontal
+    }, objattr1_affine {
+        .x = x,
+        .affine_index = 7,
+        .size = 2
+    }, objattr2 {
+        .tile_id = 14,
+        .palbank = 1
+    });
+
+    y += 16 + spacing;
+
+    // 16x32
+    set_object(8, objattr0 {
+        .y = y,
+        .style = obj_display::affine_double,
+        .bpp8 = false,
+        .shape = obj_shape::vertical
+    }, objattr1_affine {
+        .x = x,
+        .affine_index = 8,
+        .size = 2
+    }, objattr2 {
+        .tile_id = 18,
+        .palbank = 2
+    });
+
+    x += 32 + spacing;
+    y = spacing;
+
+    // size 3 (8-bit affine)
+
+    // 64x64
+    set_object(9, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .bpp8 = true,
+        .shape = obj_shape::square
+    }, objattr1_affine {
+        .x = x,
+        .affine_index = 9,
+        .size = 3
+    }, objattr2 {
+        .tile_id = 512 + 264,
+    });
+
+    y += 64 + spacing;
+
+    // 64x32
+    set_object(10, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .bpp8 = true,
+        .shape = obj_shape::horizontal
+    }, objattr1_affine {
+        .x = x,
+        .affine_index = 10,
+        .size = 3
+    }, objattr2 {
+        .tile_id = 512 + 144,
+    });
+
+    // new column, no space left
+    y = spacing;
+    x += 64 + spacing;
+
+    // 32x64
+    set_object(11, objattr0 {
+        .y = y,
+        .style = obj_display::affine_double,
+        .bpp8 = true,
+        .shape = obj_shape::vertical
+    }, objattr1_affine {
+        .x = x,
+        .affine_index = 11,
+        .size = 3
+    }, objattr2 {
+        .tile_id = 512 + 280,
+    });
+
+    // hide everything else off-screen
+    for(int i = 12; i < 128; i++)
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
+
+    wait_for_exit();
+}
+
 void display_obj_wrap_x() {
     palette_ram[0] = 0x4210;
 

@@ -108,6 +108,7 @@ static const std::array display_object_tests {
     test_info {"Display/Objects reg 4bpp pal", display_obj_regular_4bpp_pal},
     test_info {"Display/Objects reg 1d", display_obj_regular_1d},
     test_info {"Display/Objects reg 8bpp 1d", display_obj_regular_8bpp_1d},
+    test_info {"Display/Objects mixed", display_obj_mixed},
     test_info {"Display/Objects wrap x", display_obj_wrap_x},
     test_info {"Display/Objects wrap y", display_obj_wrap_y},
     test_info {"Display/Objects wrap y bug", display_obj_wrap_y_bug},

@@ -116,6 +116,7 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_obj_regular_4bpp_pal
         display_obj_regular_1d
         display_obj_regular_8bpp_1d
+        display_obj_mixed
         display_obj_wrap_x
         display_obj_wrap_y
         display_obj_wrap_y_bug
