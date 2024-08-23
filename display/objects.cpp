@@ -657,6 +657,63 @@ void display_obj_regular_hvflip() {
     wait_for_exit();
 }
 
+void display_obj_regular_8bpp_hflip() {
+    // "regular" non-affine sprites, every size/shape, h-flipped
+
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
+
+    setup_objects(obj_display::normal, true, true);
+
+    wait_for_exit();
+}
+
+void display_obj_regular_8bpp_vflip() {
+    // "regular" non-affine sprites, every size/shape, v-flipped
+
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
+
+    setup_objects(obj_display::normal, true, false, true);
+
+    wait_for_exit();
+}
+
+void display_obj_regular_8bpp_hvflip() {
+    // "regular" non-affine sprites, every size/shape, h and v-flipped
+
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
+
+    setup_objects(obj_display::normal, true, true, true);
+
+    wait_for_exit();
+}
+
 static void setup_affine_params() {
     for(int i = 0; i < 12; i++) {
         float scale = (i / 3 + 1) / 3.0f;
@@ -687,6 +744,24 @@ void display_obj_affine_rotscale() {
     };
 
     setup_affine_objects(obj_display::affine);
+    setup_affine_params();
+
+    wait_for_exit();
+}
+
+void display_obj_affine_8bpp_rotscale() {
+    palette_ram[0] = 0x4210;
+
+    // load sprites
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
+
+    setup_affine_objects(obj_display::affine, true);
     setup_affine_params();
 
     wait_for_exit();

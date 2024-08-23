@@ -111,7 +111,11 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_obj_regular_hflip
         display_obj_regular_vflip
         display_obj_regular_hvflip
+        display_obj_regular_8bpp_hflip
+        display_obj_regular_8bpp_vflip
+        display_obj_regular_8bpp_hvflip
         display_obj_affine_rotscale
+        display_obj_affine_8bpp_rotscale
         display_obj_affine_double_rotscale
         display_obj_regular_4bpp_pal
         display_obj_regular_1d
