@@ -180,17 +180,17 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_mosaic_mode2_0_15_rotscale
         display_mosaic_mode2_15_0_rotscale
         display_mosaic_mode3_0
-        display_mosaic_mode3_1_1
+        display_mosaic_mode3_4_4
         display_mosaic_mode3_15_15
         display_mosaic_mode3_0_15
         display_mosaic_mode3_15_0
         display_mosaic_mode4_0
-        display_mosaic_mode4_1_1
+        display_mosaic_mode4_4_4
         display_mosaic_mode4_15_15
         display_mosaic_mode4_0_15
         display_mosaic_mode4_15_0
         display_mosaic_mode5_0
-        display_mosaic_mode5_1_1
+        display_mosaic_mode5_4_4
         display_mosaic_mode5_15_15
         display_mosaic_mode5_0_15
         display_mosaic_mode5_15_0

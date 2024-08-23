@@ -220,8 +220,8 @@ void display_mosaic_mode3_0() {
    mosaic_mode3(1, 1);
 }
 
-void display_mosaic_mode3_1_1() {
-   mosaic_mode3(2, 2);
+void display_mosaic_mode3_4_4() {
+   mosaic_mode3(5, 5);
 }
 
 void display_mosaic_mode3_15_15() {
@@ -280,8 +280,8 @@ void display_mosaic_mode4_0() {
    mosaic_mode4(1, 1);
 }
 
-void display_mosaic_mode4_1_1() {
-   mosaic_mode4(2, 2);
+void display_mosaic_mode4_4_4() {
+   mosaic_mode4(5, 5);
 }
 
 void display_mosaic_mode4_15_15() {
@@ -331,8 +331,8 @@ void display_mosaic_mode5_0() {
    mosaic_mode5(1, 1);
 }
 
-void display_mosaic_mode5_1_1() {
-   mosaic_mode5(2, 2);
+void display_mosaic_mode5_4_4() {
+   mosaic_mode5(5, 5);
 }
 
 void display_mosaic_mode5_15_15() {
