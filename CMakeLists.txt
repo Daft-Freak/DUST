@@ -146,8 +146,10 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_window_win0_bg
         display_window_win1_bg
         display_window_obj_win_bg
+        display_window_obj_win_mixed_bg
         display_window_priority
         display_window_objects
+        display_window_objects_mixed
         display_window_win0_bg_affine
         display_window_hblank_irq
         display_window_hblank_dma

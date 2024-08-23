@@ -3,6 +3,7 @@
 #include "../common.hpp"
 
 #include "../assets/sprites.h"
+#include "../assets/sprites_256.h"
 
 using namespace gba;
 
@@ -149,6 +150,97 @@ void display_window_obj_win_bg() {
     wait_for_exit();
 }
 
+static void setup_mixed_objects(bool as_window) {
+    // sets up a mis of 4/8bpp regular/affine objects
+
+    auto mode = as_window ? obj_effect::window : obj_effect::normal;
+
+    // 4-bit regular
+    objattr obj {
+        {.y = 10, .mode = mode},
+        {.x = 10, .size = 0},
+        {.tile_id = 0}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000000), &obj, sizeof(obj));
+
+    // 8-bit regular
+    obj = objattr {
+        {.y = 10, .mode = mode, .bpp8 = true},
+        {.x = 26, .size = 1},
+        {.tile_id = 512 + 6}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000008), &obj, sizeof(obj));
+
+    // 4-bit-affine
+    objattr_affine obj_aff = {
+        {.y = 10, .style = obj_display::affine, .mode = mode},
+        {.x = 68, .size = 2},
+        {.tile_id = 10}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000010), &obj_aff, sizeof(obj_aff));
+
+    // ... double
+    obj_aff.style = obj_display::affine_double;
+    obj_aff.y += 42;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000018), &obj_aff, sizeof(obj_aff));
+
+    // 8-bit affine
+    obj_aff = objattr_affine {
+        {.y = 10, .style = obj_display::affine, .mode = mode, .bpp8 = true},
+        {.x = 110, .size = 3},
+        {.tile_id = 512 + 264}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000020), &obj_aff, sizeof(obj_aff));
+
+    // ... double
+    obj_aff.style = obj_display::affine_double;
+    obj_aff.y += 42;
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000028), &obj_aff, sizeof(obj_aff));
+
+    // setup one affine slot
+    static const bios::obj_affine_src input {
+        .sx = 1.099f,
+        .sy = 1.099f,
+        .alpha = 0x2000
+    };
+
+    bios::ObjAffineSet(&input, reinterpret_cast<fixed<short, 8> *>(0x7000006), 1, 8);
+}
+
+void display_window_obj_win_mixed_bg() {
+    // load sprites, but don't bother with the palette
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x14000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+
+    // same thing, but object window
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg2 = true,
+        .show_obj = true,
+        .enable_obj_win = true
+    };
+
+    mmio::WINOUT = {
+        .outside_bg3 = true,
+
+        .obj_win_bg1 = true,
+        .obj_win_bg2 = true
+    };
+
+    palette_ram[0] = 0x4210;
+
+    setup_mixed_objects(true);
+
+    setup_layers();
+
+    wait_for_exit();
+}
+
 void display_window_priority() {
     // load sprites, but don't bother with the palette
     __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
@@ -266,6 +358,67 @@ void display_window_objects() {
     obj.y = 50;
     obj.x = 0;
     __agbabi_memcpy2(reinterpret_cast<void*>(0x7000010), &obj, sizeof(obj));
+
+    setup_layers();
+
+    wait_for_exit();
+}
+
+void display_window_objects_mixed() {
+    // load both sets of sprites
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x14000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    // with a hybrid palette
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, 4 * 2);
+
+    // enable ALL the windows
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_bg0 = true,
+        .show_bg1 = true,
+        .show_bg2 = true,
+        .show_bg3 = true,
+        .show_obj = true,
+        .enable_win0 = true,
+        .enable_win1 = true,
+        .enable_obj_win = true
+    };
+
+    mmio::WIN0H = u8x2{140 - 1, 12};
+    mmio::WIN0V = u8x2{100 - 1, 15};
+
+    mmio::WIN1H = u8x2{240 - 20 - 1, 15};
+    mmio::WIN1V = u8x2{160 - 20 - 1, 30};
+
+    mmio::WININ = {
+        .win0_bg3 = true,
+        .win0_obj = true,
+
+        .win1_bg2 = true,
+    };
+
+    mmio::WINOUT = {
+        .outside_bg0 = true,
+
+        // this is the obj window
+        .obj_win_bg1 = true,
+        .obj_win_obj = true
+    };
+
+
+    palette_ram[0] = 0x4210;
+
+    // setup sprite for window
+    objattr obj {
+        {.y = 5, .mode = obj_effect::window},
+        {.x = 100, .size = 3},
+        {.tile_id = 20}
+    };
+
+    __agbabi_memcpy2(reinterpret_cast<void*>(0x7000030), &obj, sizeof(obj));
+
+    setup_mixed_objects(false);
 
     setup_layers();
 
