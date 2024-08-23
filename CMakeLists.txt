@@ -206,6 +206,12 @@ if(BUILD_SINGLE_TEST_ROMS)
         display_mosaic_objects_affine_15_15
         display_mosaic_objects_affine_0_15
         display_mosaic_objects_affine_15_0
+        display_mosaic_objects_mixed_1_1
+        display_mosaic_objects_mixed_4_4
+        display_mosaic_objects_mixed_9_9
+        display_mosaic_objects_mixed_15_15
+        display_mosaic_objects_mixed_0_15
+        display_mosaic_objects_mixed_15_0
         display_mosaic_window
         display_blend_mode0
         display_blend_mode1

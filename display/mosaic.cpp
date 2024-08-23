@@ -3,6 +3,7 @@
 #include "../common.hpp"
 
 #include "../assets/sprites.h"
+#include "../assets/sprites_256.h"
 
 using namespace gba;
 
@@ -627,6 +628,271 @@ void display_mosaic_objects_affine_0_15() {
 
 void display_mosaic_objects_affine_15_0() {
    mosaic_objects(obj_display::affine, 16, 1);
+}
+
+static void mosaic_objects_mixed(uint32_t size_x, uint32_t size_y) {
+    // a mix of 4/8bit, regular/affine
+    palette_ram[0] = 0x4210;
+
+    // load both sets of sprites
+    __agbabi_memcpy2(video_ram + 0x10000 / 2, sprites_tile_data, sizeof(sprites_tile_data));
+    __agbabi_memcpy2(video_ram + 0x14000 / 2, sprites_256_tile_data, sizeof(sprites_256_tile_data));
+    // with a hybrid palette
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_256_palette, sizeof(sprites_256_palette));
+    __agbabi_memcpy2(palette_ram + 0x200 / 2, sprites_palette, 4 * 2);
+
+    mmio::DISPCNT = {
+        .video_mode = 0,
+        .show_obj = true,
+    };
+
+    mmio::MOSAIC = {
+        .obj_h_extra = size_x - 1,
+        .obj_v_extra = size_y - 1
+    };
+
+    // modified a bit from object tests setup_objects
+    const int spacing = 9;
+    uint16_t x = spacing, y = spacing;
+
+    // size 0 (4-bit regular)
+
+    // 8x8
+    set_object(0, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .mosaic = true,
+        .shape = obj_shape::square
+    }, objattr1 {
+        .x = x,
+        .size = 0
+    }, objattr2 {
+        .tile_id = 0,
+    });
+    y += 8 + spacing;
+
+    // 16x8
+    set_object(1, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .mosaic = true,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
+        .x = x,
+        .size = 0
+    }, objattr2 {
+        .tile_id = 1,
+        .palbank = 1
+    });
+
+    y += 8 + spacing;
+
+    // 8x16
+    set_object(2, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .mosaic = true,
+        .shape = obj_shape::vertical
+    }, objattr1 {
+        .x = x,
+        .size = 0
+    }, objattr2 {
+        .tile_id = 32,
+        .palbank = 2
+    });
+
+    y = spacing;
+    x += 16 + spacing;
+
+    // size 1 (8-bit regulat)
+
+    // 16x16
+    set_object(3, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .mosaic = true,
+        .bpp8 = true,
+        .shape = obj_shape::square
+    }, objattr1 {
+        .x = x,
+        .size = 1
+    }, objattr2 {
+        .tile_id = 512 + 6,
+    });
+
+    y += 16 + spacing;
+
+    // 32x8
+    set_object(4, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .mosaic = true,
+        .bpp8 = true,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
+        .x = x,
+        .size = 1
+    }, objattr2 {
+        .tile_id = 512 + 10,
+    });
+
+    y += 8 + spacing;
+
+    // 8x32
+    set_object(5, objattr0 {
+        .y = y,
+        .style = obj_display::normal,
+        .mosaic = true,
+        .bpp8 = true,
+        .shape = obj_shape::vertical
+    }, objattr1 {
+        .x = x,
+        .size = 1
+    }, objattr2 {
+        .tile_id = 512 + 18,
+    });
+
+    x += 32 + spacing;
+    y = spacing;
+
+    // size 2 (4-bit affine)
+
+    // 32x32
+    set_object(6, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .mosaic = true,
+        .shape = obj_shape::square
+    }, objattr1 {
+        .x = x,
+        .size = 2
+    }, objattr2 {
+        .tile_id = 10,
+    });
+
+    y += 32 + spacing;
+
+    // 32x16
+    set_object(7, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .mosaic = true,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
+        .x = x,
+        .size = 2
+    }, objattr2 {
+        .tile_id = 14,
+        .palbank = 1
+    });
+
+    y += 16 + spacing;
+
+    // 16x32
+    set_object(8, objattr0 {
+        .y = y,
+        .style = obj_display::affine_double,
+        .mosaic = true,
+        .shape = obj_shape::vertical
+    }, objattr1 {
+        .x = x,
+        .size = 2
+    }, objattr2 {
+        .tile_id = 18,
+        .palbank = 2
+    });
+
+    x += 32 + spacing;
+    y = spacing;
+
+    // size 3 (8-bit affine)
+
+    // 64x64
+    set_object(9, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .mosaic = true,
+        .bpp8 = true,
+        .shape = obj_shape::square
+    }, objattr1 {
+        .x = x,
+        .size = 3
+    }, objattr2 {
+        .tile_id = 512 + 264
+    });
+
+    y += 64 + spacing;
+
+    // 64x32
+    set_object(10, objattr0 {
+        .y = y,
+        .style = obj_display::affine,
+        .mosaic = true,
+        .bpp8 = true,
+        .shape = obj_shape::horizontal
+    }, objattr1 {
+        .x = x,
+        .size = 3
+    }, objattr2 {
+        .tile_id = 512 + 144,
+    });
+
+    // new column, no space left
+    y = spacing;
+    x += 64 + spacing;
+
+    // 32x64
+    set_object(11, objattr0 {
+        .y = y,
+        .style = obj_display::affine_double,
+        .mosaic = true,
+        .bpp8 = true,
+        .shape = obj_shape::vertical
+    }, objattr1 {
+        .x = x,
+        .size = 3
+    }, objattr2 {
+        .tile_id = 512 + 280,
+    });
+
+    // hide everything else off-screen
+    for(int i = 12; i < 128; i++)
+        set_object(i, objattr0 {.y = 160}, objattr1 {}, {});
+
+    // just the one transform for now
+    static const bios::obj_affine_src input {
+        .sx = 1.099f,
+        .sy = 1.099f,
+        .alpha = 0x2000
+    };
+
+    bios::ObjAffineSet(&input, reinterpret_cast<fixed<short, 8> *>(oam_addr + 6), 1, 8);
+
+    wait_for_exit();
+}
+
+void display_mosaic_objects_mixed_1_1() {
+   mosaic_objects_mixed(2, 2);
+}
+
+void display_mosaic_objects_mixed_4_4() {
+   mosaic_objects_mixed(5, 5);
+}
+
+void display_mosaic_objects_mixed_9_9() {
+   mosaic_objects_mixed(10, 10);
+}
+
+void display_mosaic_objects_mixed_15_15() {
+   mosaic_objects_mixed(16, 16);
+}
+
+void display_mosaic_objects_mixed_0_15() {
+   mosaic_objects_mixed(1, 16);
+}
+
+void display_mosaic_objects_mixed_15_0() {
+   mosaic_objects_mixed(16, 1);
 }
 
 void display_mosaic_window() {

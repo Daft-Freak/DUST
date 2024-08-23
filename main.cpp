@@ -204,6 +204,12 @@ static const std::array display_mosaic_tests {
     test_info {"Display/Mosaic obj aff 15x15", display_mosaic_objects_affine_15_15},
     test_info {"Display/Mosaic obj aff 0x15", display_mosaic_objects_affine_0_15},
     test_info {"Display/Mosaic obj aff 15x0", display_mosaic_objects_affine_15_0},
+    test_info {"Display/Mosaic obj mix 1x1", display_mosaic_objects_mixed_1_1},
+    test_info {"Display/Mosaic obj mix 4x4", display_mosaic_objects_mixed_4_4},
+    test_info {"Display/Mosaic obj mix 9x9", display_mosaic_objects_mixed_9_9},
+    test_info {"Display/Mosaic obj mix 15x15", display_mosaic_objects_mixed_15_15},
+    test_info {"Display/Mosaic obj mix 0x15", display_mosaic_objects_mixed_0_15},
+    test_info {"Display/Mosaic obj mix 15x0", display_mosaic_objects_mixed_15_0},
     test_info {"Display/Mosaic window", display_mosaic_window},
 };
 
