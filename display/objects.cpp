@@ -862,10 +862,6 @@ void display_obj_mixed() {
         .show_obj = true,
     };
 
-    bool flip_h = false;
-    bool flip_v = false;
-    uint16_t pal_num = 0;
-
     const int spacing = 10;
     uint16_t x = spacing, y = spacing;
 
@@ -879,8 +875,6 @@ void display_obj_mixed() {
         .shape = obj_shape::square
     }, objattr1 {
         .x = x,
-        .hflip = flip_h,
-        .vflip = flip_v,
         .size = 0
     }, objattr2 {
         .tile_id = 0,
@@ -896,8 +890,6 @@ void display_obj_mixed() {
         .shape = obj_shape::horizontal
     }, objattr1 {
         .x = x,
-        .hflip = flip_h,
-        .vflip = flip_v,
         .size = 0
     }, objattr2 {
         .tile_id = 1,
@@ -914,8 +906,6 @@ void display_obj_mixed() {
         .shape = obj_shape::vertical
     }, objattr1 {
         .x = x,
-        .hflip = flip_h,
-        .vflip = flip_v,
         .size = 0
     }, objattr2 {
         .tile_id = 32,
@@ -935,8 +925,6 @@ void display_obj_mixed() {
         .shape = obj_shape::square
     }, objattr1 {
         .x = x,
-        .hflip = flip_h,
-        .vflip = flip_v,
         .size = 1
     }, objattr2 {
         .tile_id = 512 + 6,
@@ -952,8 +940,6 @@ void display_obj_mixed() {
         .shape = obj_shape::horizontal
     }, objattr1 {
         .x = x,
-        .hflip = flip_h,
-        .vflip = flip_v,
         .size = 1
     }, objattr2 {
         .tile_id = 512 + 10,
@@ -969,8 +955,6 @@ void display_obj_mixed() {
         .shape = obj_shape::vertical
     }, objattr1 {
         .x = x,
-        .hflip = flip_h,
-        .vflip = flip_v,
         .size = 1
     }, objattr2 {
         .tile_id = 512 + 18,
